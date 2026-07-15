@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/evidence-profile.v1.schema.json",
+  "title": "Evidence Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "risk_level",
+    "description",
+    "required_effects",
+    "required_verifications",
+    "required_closure_fields"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "risk_level": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "required_effects": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "commit",
+          "pull_request",
+          "merge",
+          "artifact",
+          "deployment",
+          "configuration_change"
+        ]
+      },
+      "maxItems": 16
+    },
+    "required_verifications": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "deterministic_regeneration",
+          "tests",
+          "review",
+          "independent_review",
+          "ci",
+          "deployment_identity",
+          "runtime_identity",
+          "service_health",
+          "smoke_test",
+          "negative_control",
+          "consumer_compatibility",
+          "recovery",
+          "product_outcome"
+        ]
+      },
+      "maxItems": 32
+    },
+    "required_closure_fields": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "bureau_task_ref",
+          "chronik_event_ref",
+          "cleanup_evidence"
+        ]
+      },
+      "maxItems": 16
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/verification-receipt.v1.schema.json",
+  "title": "Verification Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "evidence_ref", "subject_sha256", "result"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"enum": ["deterministic_regeneration", "tests", "review", "independent_review", "ci", "deployment_identity", "runtime_identity", "service_health", "smoke_test", "negative_control", "consumer_compatibility", "recovery", "product_outcome"]},
+    "evidence_ref": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "result": {"enum": ["pass", "fail", "unknown"]}
+  }
+}

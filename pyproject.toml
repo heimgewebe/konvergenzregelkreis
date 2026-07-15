@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "regelkreis"
+version = "0.1.0"
+description = "Stateless convergence protocol evaluator for evidence-bound ecosystem changes"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Alexander Mohr" }]
+dependencies = ["jsonschema>=4.23,<5"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.scripts]
+regelkreis = "regelkreis.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+regelkreis = ["py.typed"]
+
+[tool.setuptools.data-files]
+"share/konvergenzregelkreis/protocol" = ["protocol/*.json"]
+"share/konvergenzregelkreis/profiles" = ["profiles/*.json"]

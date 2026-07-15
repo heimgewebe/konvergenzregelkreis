@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "risk_level": "R1",
+  "description": "Reversible Code- oder Contract-Änderung ohne produktive Laufzeitmutation.",
+  "required_effects": ["merge"],
+  "required_verifications": ["tests", "review", "ci"],
+  "required_closure_fields": ["bureau_task_ref"]
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "risk_level": "R2",
+  "description": "Produktive Dienst-, Runtime- oder Infrastrukturänderung mit reversibler Wirkung.",
+  "required_effects": ["merge", "deployment"],
+  "required_verifications": ["tests", "review", "ci", "deployment_identity", "runtime_identity", "service_health", "smoke_test", "negative_control"],
+  "required_closure_fields": ["bureau_task_ref", "chronik_event_ref", "cleanup_evidence"]
+}

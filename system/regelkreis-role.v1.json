@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "system_id": "repo:konvergenzregelkreis",
+  "name": "Konvergenzregelkreis",
+  "purpose": "Öffentlicher, zustandsloser Protokoll- und Konformitätskern für den beleggebundenen Abschluss systemweiter Änderungen.",
+  "truth_ownership": [
+    "convergence_protocol",
+    "evidence_profiles",
+    "transition_semantics",
+    "conformance_fixtures"
+  ],
+  "not_responsible_for": [
+    "task_state",
+    "queue_state",
+    "claims",
+    "execution",
+    "leases",
+    "merge_authority",
+    "deployment_state",
+    "runtime_health",
+    "system_semantics",
+    "fleet_membership",
+    "event_history",
+    "product_telemetry"
+  ],
+  "entrypoints": {
+    "repository": "https://github.com/heimgewebe/konvergenzregelkreis",
+    "readme": "https://github.com/heimgewebe/konvergenzregelkreis/blob/main/README.md",
+    "agent_entry": "https://github.com/heimgewebe/konvergenzregelkreis/blob/main/AGENTS.md",
+    "protocol": "https://github.com/heimgewebe/konvergenzregelkreis/tree/main/protocol",
+    "profiles": "https://github.com/heimgewebe/konvergenzregelkreis/tree/main/profiles",
+    "cli": "regelkreis"
+  }
+}

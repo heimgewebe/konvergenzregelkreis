@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.14"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Validate contracts
+        run: python -m regelkreis.cli validate-contracts
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile
+        run: python -m compileall -q src tests
+
+      - name: Verify canonical fixture
+        run: |
+          python -m regelkreis.cli evaluate conformance/valid/r2-terminal.json > /tmp/actual.json
+          python -c 'import json; from pathlib import Path; assert json.loads(Path("/tmp/actual.json").read_text()) == json.loads(Path("conformance/expected/r2-terminal.json").read_text())'
+
+  wheel:
+    name: Wheel isolation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Build distributions
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install wheel in isolation
+        run: |
+          python -m venv /tmp/regelkreis-wheel
+          /tmp/regelkreis-wheel/bin/pip install dist/*.whl
+
+      - name: Prove embedded contracts outside checkout
+        working-directory: /tmp
+        run: |
+          /tmp/regelkreis-wheel/bin/regelkreis validate-contracts
+          /tmp/regelkreis-wheel/bin/regelkreis evaluate "$GITHUB_WORKSPACE/conformance/valid/r2-terminal.json" > /tmp/wheel-result.json
+          python -c 'import json, os; from pathlib import Path; expected=json.loads(Path(os.environ["GITHUB_WORKSPACE"], "conformance/expected/r2-terminal.json").read_text()); actual=json.loads(Path("/tmp/wheel-result.json").read_text()); assert actual == expected'

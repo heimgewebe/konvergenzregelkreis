@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "assessment_id": "example-r2-terminal",
+  "risk_level": "R2",
+  "observation": {
+    "schema_version": 1,
+    "observation_id": "obs-example-r2",
+    "observed_at": "2026-07-15T19:00:00Z",
+    "source_state": "current",
+    "source_refs": [
+      {
+        "kind": "git_commit",
+        "ref": "github:heimgewebe/example@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "claims": ["Die produktive Änderung wurde erneut gegen ihre Primärquelle beobachtet."],
+    "does_not_establish": ["product_outcome"]
+  },
+  "classification": {
+    "schema_version": 1,
+    "change_class": "runtime",
+    "semantic_change": "material",
+    "blocked_by": []
+  },
+  "effects": [
+    {
+      "schema_version": 1,
+      "kind": "merge",
+      "evidence_ref": "github:heimgewebe/example#1:merge",
+      "subject_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "schema_version": 1,
+      "kind": "deployment",
+      "evidence_ref": "deployment:example:release-1",
+      "subject_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "verifications": [
+    {"schema_version": 1, "kind": "tests", "evidence_ref": "ci:tests", "subject_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "result": "pass"},
+    {"schema_version": 1, "kind": "review", "evidence_ref": "review:self", "subject_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "result": "pass"},
+    {"schema_version": 1, "kind": "ci", "evidence_ref": "ci:main", "subject_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "result": "pass"},
+    {"schema_version": 1, "kind": "deployment_identity", "evidence_ref": "deployment:identity", "subject_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "result": "pass"},
+    {"schema_version": 1, "kind": "runtime_identity", "evidence_ref": "runtime:identity", "subject_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "result": "pass"},
+    {"schema_version": 1, "kind": "service_health", "evidence_ref": "runtime:health", "subject_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "result": "pass"},
+    {"schema_version": 1, "kind": "smoke_test", "evidence_ref": "runtime:smoke", "subject_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "result": "pass"},
+    {"schema_version": 1, "kind": "negative_control", "evidence_ref": "runtime:old-state-absent", "subject_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "result": "pass"}
+  ],
+  "closure": {
+    "schema_version": 1,
+    "closure_id": "closure-example-r2",
+    "status": "closed",
+    "bureau_task_ref": "bureau:EXAMPLE-T001",
+    "chronik_event_ref": "chronik:event:1",
+    "cleanup_evidence": ["grabowski:cleanup:example"],
+    "residual_risks": []
+  }
+}

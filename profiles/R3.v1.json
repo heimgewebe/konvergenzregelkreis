@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "risk_level": "R3",
+  "description": "Security-, Daten- oder irreversible Hochrisikoänderung mit erweitertem Recovery- und Reviewbedarf.",
+  "required_effects": ["merge", "deployment"],
+  "required_verifications": ["tests", "review", "independent_review", "ci", "deployment_identity", "runtime_identity", "service_health", "smoke_test", "negative_control", "consumer_compatibility", "recovery"],
+  "required_closure_fields": ["bureau_task_ref", "chronik_event_ref", "cleanup_evidence"]
+}

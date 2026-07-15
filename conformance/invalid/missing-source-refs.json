@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "assessment_id": "invalid-missing-source",
+  "risk_level": "R0",
+  "observation": {
+    "schema_version": 1,
+    "observation_id": "obs-invalid",
+    "observed_at": "2026-07-15T19:00:00Z",
+    "source_state": "current",
+    "source_refs": [],
+    "claims": ["Unbelegte Behauptung"],
+    "does_not_establish": []
+  },
+  "classification": {
+    "schema_version": 1,
+    "change_class": "documentation",
+    "semantic_change": "none",
+    "blocked_by": []
+  },
+  "effects": [],
+  "verifications": []
+}
