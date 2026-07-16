@@ -15,10 +15,10 @@ Systemweite Änderungen werden nicht mit dem Merge gleichgesetzt. Der Regelkreis
 | T005 | Evidence-Profile R0–R3 | umgesetzt |
 | T006 | Zustandslose Referenzauswertung | umgesetzt |
 | T007 | Pilot Systemkatalog-Drift | terminal geschlossen; öffentliche R2-Fixture vorhanden |
-| T008 | Pilot Merge bis Deployment | Integrationsvertrag vorhanden; Live-Pilot ausstehend |
+| T008 | Pilot Merge bis Deployment | Grabowski PR #235 terminal geschlossen; öffentliche R2-Fixture vorhanden |
 | T009 | Bureau- und Grabowski-Integration | erster Abschluss belegt; Adapter bleiben in Eigentümer-Repos |
 | T010 | Lebenszyklusabschluss und Cleanup | Bureau, Chronik und Worktree-Archivierung im Pilot belegt |
-| T011 | Öffentliche Version 1.0 | nach zwei Live-Piloten und Konfliktfall |
+| T011 | Öffentliche Version 1.0 | umgesetzt; Version 1.0.0 |
 
 ## Releasekriterien für 1.0
 

@@ -3,11 +3,13 @@ from __future__ import annotations
 import copy
 import io
 import json
+import re
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
+import regelkreis
 from regelkreis.cli import main
 from regelkreis.core import (
     MAX_JSON_BYTES,
@@ -23,6 +25,10 @@ VALID_FIXTURE = ROOT / "conformance" / "valid" / "r2-terminal.json"
 EXPECTED_FIXTURE = ROOT / "conformance" / "expected" / "r2-terminal.json"
 PILOT_FIXTURE = ROOT / "conformance" / "valid" / "systemkatalog-pilot-r2-terminal.json"
 PILOT_EXPECTED = ROOT / "conformance" / "expected" / "systemkatalog-pilot-r2-terminal.json"
+GRABOWSKI_PILOT = ROOT / "conformance" / "valid" / "grabowski-pilot-r2-terminal.json"
+GRABOWSKI_EXPECTED = ROOT / "conformance" / "expected" / "grabowski-pilot-r2-terminal.json"
+GRABOWSKI_CONFLICT = ROOT / "conformance" / "conflict" / "grabowski-pilot-r2-conflicting-deployment.json"
+GRABOWSKI_CONFLICT_EXPECTED = ROOT / "conformance" / "expected" / "grabowski-pilot-r2-conflicting-deployment.json"
 INVALID_FIXTURE = ROOT / "conformance" / "invalid" / "missing-source-refs.json"
 
 
@@ -41,6 +47,21 @@ class ContractTests(unittest.TestCase):
 
     def test_systemkatalog_pilot_fixture_matches_expected(self) -> None:
         self.assertEqual(load_json(PILOT_EXPECTED), evaluate(load_json(PILOT_FIXTURE), ROOT))
+
+    def test_grabowski_pilot_fixture_matches_expected(self) -> None:
+        self.assertEqual(load_json(GRABOWSKI_EXPECTED), evaluate(load_json(GRABOWSKI_PILOT), ROOT))
+
+    def test_grabowski_conflict_fixture_fails_closed(self) -> None:
+        self.assertEqual(
+            load_json(GRABOWSKI_CONFLICT_EXPECTED),
+            evaluate(load_json(GRABOWSKI_CONFLICT), ROOT),
+        )
+
+    def test_package_and_module_versions_match(self) -> None:
+        text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        match = re.search(r'^version = "([^"]+)"$', text, re.MULTILINE)
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), regelkreis.__version__)
 
     def test_output_is_byte_deterministic(self) -> None:
         first = canonical_json(evaluate(self.request, ROOT))
@@ -122,6 +143,14 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(3, code)
         self.assertEqual("", stdout.getvalue())
         self.assertEqual("invalid_input", json.loads(stderr.getvalue())["status"])
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            code = main(["evaluate", str(GRABOWSKI_CONFLICT), "--contract-root", str(ROOT)])
+        self.assertEqual(4, code)
+        self.assertEqual("", stderr.getvalue())
+        self.assertEqual("conflicting_evidence", json.loads(stdout.getvalue())["status"])
 
 
 if __name__ == "__main__":

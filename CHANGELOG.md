@@ -4,6 +4,20 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-16
+
+### Added
+
+- zweiter unabhängiger R2-Live-Pilot für Grabowski PR #235 von Merge über unveränderliches Deployment bis Laufzeit- und Liveprobe;
+- öffentliche fail-closed Konfliktfixture mit bewusst divergierenden Deployment-Identitäten;
+- verbindliche SemVer-, Dokumentversions- und Migrationsregeln für 1.x.
+
+### Changed
+
+- Paket- und Modulversion auf 1.0.0 synchronisiert;
+- Reifestatus auf Production/Stable gesetzt;
+- Masterplan T008 und T011 abgeschlossen.
+
 ## [0.2.0] - 2026-07-16
 
 ### Added

@@ -68,8 +68,8 @@ python -m compileall -q src tests
 python -m regelkreis.cli validate-contracts
 ```
 
-Architektur, Autoritätsgrenzen und Threat Model stehen unter [`docs/`](docs/).
+Architektur, Autoritätsgrenzen, Threat Model sowie verbindliche SemVer- und Migrationsregeln stehen unter [`docs/`](docs/).
 
 ## Status
 
-Version `0.2.0` enthält den terminal geschlossenen R2-Pilot `SYSTEMKATALOG-DRIFT-CLOSED-LOOP-V1` als öffentliche Konformitätsfixture. Der Protokollkern bleibt zustandslos und übernimmt keine Wahrheit seiner Consumer.
+Version `1.0.0` enthält zwei unabhängige terminal geschlossene R2-Piloten: Systemkatalog-Drift und Grabowski Merge→Deployment→Live. Ein reproduzierbarer Negative-Control-Konflikt belegt `conflicting_evidence` trotz vollständiger Closure. Der Protokollkern bleibt zustandslos und übernimmt keine Wahrheit seiner Consumer.
