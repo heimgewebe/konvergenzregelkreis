@@ -9,15 +9,15 @@ Systemweite Änderungen werden nicht mit dem Merge gleichgesetzt. Der Regelkreis
 | Task | Inhalt | Status im Bootstrap |
 |---|---|---|
 | T001 | Öffentliches Repo, Lizenz, CI, Security, Agenteneinstieg | umgesetzt |
-| T002 | Autoritätsgrenzen und maschinenlesbarer Rollenvertrag | im Repo umgesetzt; Systemkatalog-PR ausstehend |
-| T003 | Leitwerk-Abgrenzung und Consumer-Audit | dokumentiert; Fleet-Audit ausstehend |
+| T002 | Autoritätsgrenzen und maschinenlesbarer Rollenvertrag | umgesetzt und im Systemkatalog bestätigt |
+| T003 | Leitwerk-Abgrenzung und Consumer-Audit | umgesetzt; Fleet und zwei Consumer geprüft |
 | T004 | Konvergenzprotokoll v1 | umgesetzt |
 | T005 | Evidence-Profile R0–R3 | umgesetzt |
 | T006 | Zustandslose Referenzauswertung | umgesetzt |
-| T007 | Pilot Systemkatalog-Drift | Integrationsvertrag vorhanden; Live-Pilot ausstehend |
+| T007 | Pilot Systemkatalog-Drift | terminal geschlossen; öffentliche R2-Fixture vorhanden |
 | T008 | Pilot Merge bis Deployment | Integrationsvertrag vorhanden; Live-Pilot ausstehend |
-| T009 | Bureau- und Grabowski-Integration | Grenzen definiert; Adapter bleiben in Eigentümer-Repos |
-| T010 | Lebenszyklusabschluss und Cleanup | Closure-Schema umgesetzt; Live-Integration ausstehend |
+| T009 | Bureau- und Grabowski-Integration | erster Abschluss belegt; Adapter bleiben in Eigentümer-Repos |
+| T010 | Lebenszyklusabschluss und Cleanup | Bureau, Chronik und Worktree-Archivierung im Pilot belegt |
 | T011 | Öffentliche Version 1.0 | nach zwei Live-Piloten und Konfliktfall |
 
 ## Releasekriterien für 1.0

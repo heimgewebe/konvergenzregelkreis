@@ -21,6 +21,8 @@ from regelkreis.core import (
 ROOT = Path(__file__).resolve().parents[1]
 VALID_FIXTURE = ROOT / "conformance" / "valid" / "r2-terminal.json"
 EXPECTED_FIXTURE = ROOT / "conformance" / "expected" / "r2-terminal.json"
+PILOT_FIXTURE = ROOT / "conformance" / "valid" / "systemkatalog-pilot-r2-terminal.json"
+PILOT_EXPECTED = ROOT / "conformance" / "expected" / "systemkatalog-pilot-r2-terminal.json"
 INVALID_FIXTURE = ROOT / "conformance" / "invalid" / "missing-source-refs.json"
 
 
@@ -36,6 +38,9 @@ class ContractTests(unittest.TestCase):
 
     def test_r2_terminal_fixture_matches_expected(self) -> None:
         self.assertEqual(load_json(EXPECTED_FIXTURE), evaluate(self.request, ROOT))
+
+    def test_systemkatalog_pilot_fixture_matches_expected(self) -> None:
+        self.assertEqual(load_json(PILOT_EXPECTED), evaluate(load_json(PILOT_FIXTURE), ROOT))
 
     def test_output_is_byte_deterministic(self) -> None:
         first = canonical_json(evaluate(self.request, ROOT))

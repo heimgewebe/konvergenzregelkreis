@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-16
+
+### Added
+
+- terminal geschlossene öffentliche R2-Fixture für den Systemkatalog-Drift-Pilot;
+- dokumentierte Belegkette über Merge, Null-Drift, Leitstand, Schauwerk, Bureau, Chronik und Worktree-Archivierung.
+
+### Changed
+
+- Masterplan und Status auf den nachgewiesenen Integrationsstand fortgeschrieben.
+
+
 ## [0.1.0] - 2026-07-15
 
 ### Added
