@@ -144,6 +144,14 @@ class ContractTests(unittest.TestCase):
         self.assertEqual("", stdout.getvalue())
         self.assertEqual("invalid_input", json.loads(stderr.getvalue())["status"])
 
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            code = main(["evaluate", str(GRABOWSKI_CONFLICT), "--contract-root", str(ROOT)])
+        self.assertEqual(4, code)
+        self.assertEqual("", stderr.getvalue())
+        self.assertEqual("conflicting_evidence", json.loads(stdout.getvalue())["status"])
+
 
 if __name__ == "__main__":
     unittest.main()
