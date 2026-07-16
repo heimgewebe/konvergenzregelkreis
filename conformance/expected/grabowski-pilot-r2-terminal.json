@@ -1,0 +1,10 @@
+{
+  "assessment_id": "grabowski-blockade-runtime-deployment-v1",
+  "blocked_by": [],
+  "conflicts": [],
+  "missing_evidence": [],
+  "profile_sha256": "52ee5bb9e9d1bc53d3f3fdea911f102d0b1c2aa1ecf19264a7d1806f8cf7bd90",
+  "risk_level": "R2",
+  "schema_version": 1,
+  "status": "terminally_closed"
+}

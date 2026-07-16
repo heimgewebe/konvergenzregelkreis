@@ -1,0 +1,128 @@
+{
+  "assessment_id": "grabowski-blockade-runtime-conflict-negative-control-v1",
+  "classification": {
+    "blocked_by": [],
+    "change_class": "runtime",
+    "schema_version": 1,
+    "semantic_change": "material"
+  },
+  "closure": {
+    "bureau_task_ref": "bureau:task:GRABOWSKI-KILL-SWITCH-RECOVERY-V1-T001:verified",
+    "chronik_event_ref": "chronik:sha256:3ea06516bfdff77a39d4db66ccf59796f0d34995eb9266241d8a3a10fe1ac44c",
+    "cleanup_evidence": [
+      "grabowski:checkout-archive:20260716T013659Z-6498c15a1c87"
+    ],
+    "closure_id": "closure-grabowski-pr235-deployment-v1",
+    "residual_risks": [
+      "Kernel-Isolation gegen beliebige Out-of-band-Ausführung derselben Unix-UID liegt außerhalb dieses Piloten und bleibt als Bureau-Task GRABOWSKI-KILL-SWITCH-RECOVERY-V1-T002 offen."
+    ],
+    "schema_version": 1,
+    "status": "closed"
+  },
+  "effects": [
+    {
+      "evidence_ref": "github-pr:heimgewebe/grabowski#235@0b09e6d7dfdb0b3171d33d5bd782d37eb36e7134",
+      "kind": "merge",
+      "schema_version": 1,
+      "subject_sha256": "84a93c5540f22ee603621f8a51330454087aa320889012006c70e43fce9691f6"
+    },
+    {
+      "evidence_ref": "grabowski-release:0b09e6d7dfdb-srcsetb0de45d3505d-locke6664d600b6c-contract51062bb6992c",
+      "kind": "deployment",
+      "schema_version": 1,
+      "subject_sha256": "eafdb627977549fe826ffb6a3faa63750641c5bdd71b1509d1433ee5a8130737"
+    },
+    {
+      "evidence_ref": "negative-control:divergent-deployment-identity",
+      "kind": "deployment",
+      "schema_version": 1,
+      "subject_sha256": "997dccbc0d0f075d50871401fa28fee98e6dff978107aeba4ae16d6aea3a5c8f"
+    }
+  ],
+  "observation": {
+    "claims": [
+      "Negative-Control-Replay mit zwei divergierenden Deployment-Identitäten.",
+      "Die Auswertung muss trotz vollständiger Closure fail-closed bleiben."
+    ],
+    "does_not_establish": [
+      "kernel_isolation_from_arbitrary_same_uid_execution",
+      "future_runtime_availability"
+    ],
+    "observation_id": "obs-grabowski-deployment-conflict-replay",
+    "observed_at": "2026-07-16T02:49:00Z",
+    "schema_version": 1,
+    "source_refs": [
+      {
+        "kind": "git_commit",
+        "ref": "github:heimgewebe/grabowski@0b09e6d7dfdb0b3171d33d5bd782d37eb36e7134",
+        "subject_sha256": "120c51911f3ef27b046897b7617f8a5302250788569a3e1e3d2acc9e005174a1"
+      },
+      {
+        "kind": "artifact",
+        "ref": "grabowski-release:0b09e6d7dfdb-srcsetb0de45d3505d-locke6664d600b6c-contract51062bb6992c",
+        "subject_sha256": "eafdb627977549fe826ffb6a3faa63750641c5bdd71b1509d1433ee5a8130737"
+      }
+    ],
+    "source_state": "current"
+  },
+  "risk_level": "R2",
+  "schema_version": 1,
+  "verifications": [
+    {
+      "evidence_ref": "grabowski:make-validate:1789-pass:1-skipped",
+      "kind": "tests",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "43b0967d58b8293f08e88552078ea99ecd464f45eece9cb888ebbe3c09ccfc52"
+    },
+    {
+      "evidence_ref": "github-pr:heimgewebe/grabowski#235:review-followups-resolved",
+      "kind": "review",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "fa81dfb21159b3b73976eb6e0844b9a0355973575eee32f1ea20f40343dfdb83"
+    },
+    {
+      "evidence_ref": "github-checks:heimgewebe/grabowski#235:python-3.10+3.12-pass",
+      "kind": "ci",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "f72206f4647e7e868bb57302d739b2413a4a4bee27d3f1e11793aac22bdd4fa3"
+    },
+    {
+      "evidence_ref": "grabowski-deployment:0b09e6d7dfdb-srcsetb0de45d3505d-locke6664d600b6c-contract51062bb6992c:entrypoint-contract:51062bb6992c6a849781b39b08d9fa1924b90c996b9a77b661b36fa6c521d6b4",
+      "kind": "deployment_identity",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "c42b071ed8547b65985674a39b97dbbbcee05652c58ce0607e434c597db6bfeb"
+    },
+    {
+      "evidence_ref": "grabowski-runtime:repo-head:0b09e6d7dfdb0b3171d33d5bd782d37eb36e7134",
+      "kind": "runtime_identity",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "37ed89e8a9f40fffebcb43103cf024c2d183718b10a4e016ec290c171818cfb4"
+    },
+    {
+      "evidence_ref": "grabowski-runtime:healthy=true:deployment-complete=true:integrity=true:audit=true",
+      "kind": "service_health",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "41c9d919fca18479be6079b82161db05b6279a767ff9d076a70092caf02373ed"
+    },
+    {
+      "evidence_ref": "grabowski-live-probe:path-blocked=true:outside-allowed=true:opaque-denied=true:exact-disarm=true",
+      "kind": "smoke_test",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "3a17ff50bb303eee20206d6aa8c055e69d3c086beace7e374846bb1333256cd1"
+    },
+    {
+      "evidence_ref": "grabowski-runtime:kill-switch-engaged=false:contract-catalog-matches=true:missing=0:orphan=0",
+      "kind": "negative_control",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "2428f9589d48e296d49668064ab942e71ff83664c9e32aa9b8f4066f88da45e2"
+    }
+  ]
+}
