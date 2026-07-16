@@ -1,0 +1,121 @@
+{
+  "assessment_id": "systemkatalog-drift-closed-loop-v1",
+  "classification": {
+    "blocked_by": [],
+    "change_class": "runtime",
+    "schema_version": 1,
+    "semantic_change": "material"
+  },
+  "closure": {
+    "bureau_task_ref": "bureau:event:487",
+    "chronik_event_ref": "chronik:sha256:25ea1adcf73b67e65dcfa9e5aaea4f4554be8275a7b6ba54419ac7c280b31054",
+    "cleanup_evidence": [
+      "grabowski:checkout-archive:20260716T004907Z-7fa20a72f978",
+      "grabowski:checkout-archive:20260716T004917Z-264a3e8ba368"
+    ],
+    "closure_id": "closure-systemkatalog-drift-v1",
+    "residual_risks": [],
+    "schema_version": 1,
+    "status": "closed"
+  },
+  "effects": [
+    {
+      "evidence_ref": "github-pr:heimgewebe/systemkatalog#136@d8230e73bd6c56b2930ec801694af84e19ed3d26",
+      "kind": "merge",
+      "schema_version": 1,
+      "subject_sha256": "09fb2ddb79502d2b8089d4b3d5c42844f35acf7f2f933e2ba79ce4fddc90637a"
+    },
+    {
+      "evidence_ref": "leitstand:systemkatalog-release:d8230e73bd6c56b2930ec801694af84e19ed3d26",
+      "kind": "deployment",
+      "schema_version": 1,
+      "subject_sha256": "0afa6c956a254288c8e1f7f844d70c8bea1f8b1f5d5f8c6839fc4ec33290be8b"
+    }
+  ],
+  "observation": {
+    "claims": [
+      "Die semantisch geprüfte Primärquellendrift ist gemergt und ein frischer Post-Merge-Lauf meldet null materielle Drift.",
+      "Leitstand und Schauwerk lesen den aktualisierten, manifestgebundenen Systemkatalog read-only."
+    ],
+    "does_not_establish": [
+      "future_source_freshness",
+      "future_consumer_availability"
+    ],
+    "observation_id": "obs-systemkatalog-postmerge-zero-drift",
+    "observed_at": "2026-07-16T00:42:52Z",
+    "schema_version": 1,
+    "source_refs": [
+      {
+        "kind": "git_commit",
+        "ref": "github:heimgewebe/systemkatalog@d8230e73bd6c56b2930ec801694af84e19ed3d26",
+        "subject_sha256": "acd8e3f5f9b99d59f3e3c0ec166bbe127779ac83b78ff1fa37af0dd65a1ea60f"
+      },
+      {
+        "kind": "artifact",
+        "ref": "systemkatalog-drift:sha256:d38a75ada495124aa948fb05b86134eb61d182eb2dff3ce253ef884100aa7ed6",
+        "subject_sha256": "4b8b0fb791a10846ead3bce356e013a67d987a16acdb1c745eb3af0fbb57f824"
+      }
+    ],
+    "source_state": "current"
+  },
+  "risk_level": "R2",
+  "schema_version": 1,
+  "verifications": [
+    {
+      "evidence_ref": "systemkatalog:repository-contract:81-pass",
+      "kind": "tests",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "54b3ee5f5fa7edde22f4c36f269b12af177cdd4f630bffbd0ea7e82f84bac1c2"
+    },
+    {
+      "evidence_ref": "review:systemkatalog-primary-source-drift-reconcile-v1",
+      "kind": "review",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "a393990dd6bb51a51f67c99dab82517ac96ba516f9a05ef85e26e56b25d57230"
+    },
+    {
+      "evidence_ref": "github-checks:heimgewebe/systemkatalog#136:all-pass",
+      "kind": "ci",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "f5d74caec927390a0a5803f7091dbb64299bd1c5654da62330f9e2df03e1826c"
+    },
+    {
+      "evidence_ref": "leitstand-unit:source-root:d8230e73bd6c56b2930ec801694af84e19ed3d26",
+      "kind": "deployment_identity",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "e38b69428f2fe295927f638f558987a0a5ae05b40725343afd80eb2a72e68076"
+    },
+    {
+      "evidence_ref": "leitstand-live:current-head:d8230e73bd6c56b2930ec801694af84e19ed3d26",
+      "kind": "runtime_identity",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "cae2d7bedcaa8b924e02ed8cdfa472e0be82d6b1fba5043bb2d44aebede947cd"
+    },
+    {
+      "evidence_ref": "leitstand.service:active-running:nrestarts-0",
+      "kind": "service_health",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "91776050709abea387e890150970f933e21d43a18ca4587518a6bc1aad8af2b0"
+    },
+    {
+      "evidence_ref": "leitstand:/ecosystem-map:repo-konvergenzregelkreis-present",
+      "kind": "smoke_test",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "505bc07600d9f8f266563ffe50aeb643fbcc1aa129e01301533f7bb8c104508c"
+    },
+    {
+      "evidence_ref": "systemkatalog-drift:materialDrift=false:changeCount=0",
+      "kind": "negative_control",
+      "result": "pass",
+      "schema_version": 1,
+      "subject_sha256": "1d8320c7dc1a97a354885df0d6a6dc4c36784ca2a077d6a0a40a3ec06fa846eb"
+    }
+  ]
+}

@@ -72,4 +72,4 @@ Architektur, Autoritätsgrenzen und Threat Model stehen unter [`docs/`](docs/).
 
 ## Status
 
-Version `0.1.0` ist ein öffentlicher, bewusst schmaler Protokollkern. Der erste Integrationspilot ist `SYSTEMKATALOG-DRIFT-CLOSED-LOOP-V1`.
+Version `0.2.0` enthält den terminal geschlossenen R2-Pilot `SYSTEMKATALOG-DRIFT-CLOSED-LOOP-V1` als öffentliche Konformitätsfixture. Der Protokollkern bleibt zustandslos und übernimmt keine Wahrheit seiner Consumer.
