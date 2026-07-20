@@ -4,6 +4,22 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-07-20
+
+### Changed
+
+- Versionsdispatch und Request-Untervalidierung für v1/v2 datengesteuert zentralisiert;
+- gemeinsame Evidence- und Statusauswertung reduziert Duplikation zwischen v1 und v2, ohne Statuspräzedenz oder Ausgaben zu ändern;
+- Resilienzprofil-Zellen werden über einen validierten Index gewählt und Duplikate nennen jetzt die konkrete Zelle;
+- explizite Diagnose für leere Profildateien ergänzt;
+- Paket- und Modulversion auf 1.1.1 synchronisiert.
+
+### Tests
+
+- Robustheitsabdeckung für degradierte Modi, Common-Mode, Return-to-Primary, Konflikt-vor-Stale-Präzedenz, Schema-Grenzen und bedingte Split-Brain-Nachweise erweitert.
+
+## [1.1.0] - 2026-07-20
+
 ### Added
 
 - additive v2-Protokollgeneration mit getrennten Achsen für Änderungsrisiko R0–R3 und den kanonischen Systemkatalog-Zielkritikalitäten;

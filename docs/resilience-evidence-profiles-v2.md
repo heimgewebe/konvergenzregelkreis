@@ -21,8 +21,8 @@ Zusätzliche Resilienznachweise werden erst für die definierten Kreuzprodukte a
 - R1 × foundational: zusätzlich unabhängiges Review;
 - R3 bei jeder bekannten Zielkritikalität sowie R2 × essential/foundational: Recovery, begrenzter Degradationsbetrieb, Cleanup und Rückkehr zum Primärpfad;
 - R2/R3 × foundational: zusätzlich unabhängige Recovery-Domäne und Common-Mode-Prüfung;
-- `unknown`: deterministisch auswählbar, aber niemals abschließbar;
-- bei möglichem Split-Brain: eigener bestandener Negativkontrollbeleg.
+- `unknown`: deterministisch auswählbar, damit Consumer eine stabile Diagnosezelle erhalten; der Status bleibt jedoch fail-closed `blocked`, bis eine kanonische Kritikalität vorliegt;
+- bei möglichem Split-Brain: eigener bestandener Negativkontrollbeleg. Diese Anforderung ist bewusst request-abhängig und wird zusätzlich zur statischen Matrixzelle aktiviert.
 
 ## Fail-closed-Regeln
 
@@ -43,6 +43,16 @@ Die Auswertung blockiert oder widerspricht, wenn:
 - `evaluate()` dispatcht ausschließlich anhand von `schema_version`.
 - Unbekannte Versionen werden als ungültige Eingabe abgewiesen.
 - v2 verändert keine Consumerdaten und migriert nichts in-place.
+
+## Migration für Consumer
+
+1. Bestehende v1-Consumer müssen nichts ändern; `schema_version: 1` behält dieselben Schemas, Profile, Statuswerte und Exit-Codes.
+2. Ein Consumer optiert explizit mit `schema_version: 2` in die Resilienzklassifikation ein und liefert zusätzlich `target_ref`, die kanonische `target_criticality` sowie die hashgebundene Kritikalitätsquelle.
+3. Consumer müssen `profile_id`, `profile_cell_id` und `profile_sha256` als Ergebnisbindung behandeln. Der Profilhash bindet die statische Matrix; request-abhängige Bedingungen wie `split_brain_possible` können darüber hinaus zusätzliche Verifikationen verlangen.
+4. `target_criticality: unknown` ist eine Diagnose- und Routingzelle, keine Abschlussfreigabe. Consumer dürfen einen solchen Befund nicht als erfüllbaren Hochrisikoabschluss interpretieren.
+5. Unbekannte `schema_version`-Werte sind kein Fallback auf die jüngste bekannte Version, sondern werden fail-closed abgewiesen.
+
+Die aktuelle Paketablage der Vertragsdateien unter `share/konvergenzregelkreis` bleibt in 1.1.x unverändert. Eine mögliche Migration auf paketinterne Ressourcen benötigt einen eigenen Kompatibilitäts- und Installationsvertrag.
 
 ## Zuständigkeitsgrenze
 
