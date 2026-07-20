@@ -20,6 +20,15 @@ SCHEMA_FILES: dict[str, str] = {
     "verification_receipt": "verification-receipt.v1.schema.json",
 }
 
+SCHEMA_FILES_V2: dict[str, str] = {
+    "assessment_request": "assessment-request.v2.schema.json",
+    "classification": "classification.v2.schema.json",
+    "closure_receipt": "closure-receipt.v2.schema.json",
+    "evidence_profile": "evidence-profile.v2.schema.json",
+    "transition_assessment": "transition-assessment.v2.schema.json",
+    "verification_receipt": "verification-receipt.v2.schema.json",
+}
+
 MAX_JSON_BYTES = 4 * 1024 * 1024
 
 STATUS_EXIT_CODES: dict[str, int] = {
@@ -52,9 +61,7 @@ def locate_contract_root(explicit: str | Path | None = None) -> Path:
         candidates.append(Path(explicit))
     else:
         candidates.extend([Path.cwd(), Path(__file__).resolve().parents[2]])
-        candidates.append(
-            Path(sysconfig.get_path("data")) / "share" / "konvergenzregelkreis"
-        )
+        candidates.append(Path(sysconfig.get_path("data")) / "share" / "konvergenzregelkreis")
 
     for candidate in candidates:
         root = candidate.resolve()
@@ -69,9 +76,7 @@ def load_json(path: Path) -> Any:
     try:
         size = path.stat().st_size
         if size > MAX_JSON_BYTES:
-            raise ContractValidationError(
-                [f"json:too_large:{path}:{size}:{MAX_JSON_BYTES}"]
-            )
+            raise ContractValidationError([f"json:too_large:{path}:{size}:{MAX_JSON_BYTES}"])
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise ContractValidationError([f"file:not_found:{path}"]) from exc
@@ -81,10 +86,14 @@ def load_json(path: Path) -> Any:
         ) from exc
 
 
+def _all_schema_files() -> tuple[str, ...]:
+    return tuple(sorted(set(SCHEMA_FILES.values()) | set(SCHEMA_FILES_V2.values())))
+
+
 def _schema_registry(root: Path) -> Registry:
     registry = Registry()
     errors: list[str] = []
-    for filename in sorted(set(SCHEMA_FILES.values())):
+    for filename in _all_schema_files():
         contents = load_json(root / "protocol" / filename)
         if not isinstance(contents, dict):
             errors.append(f"schema:not_object:{filename}")
@@ -104,19 +113,27 @@ def _schema_registry(root: Path) -> Registry:
     return registry
 
 
-def _schema(root: Path, key: str) -> Mapping[str, Any]:
+def _schema(root: Path, key: str, *, version: int = 1) -> Mapping[str, Any]:
+    files = SCHEMA_FILES if version == 1 else SCHEMA_FILES_V2 if version == 2 else {}
     try:
-        filename = SCHEMA_FILES[key]
+        filename = files[key]
     except KeyError as exc:
-        raise ContractValidationError([f"schema:unknown:{key}"]) from exc
+        raise ContractValidationError([f"schema:unknown:v{version}:{key}"]) from exc
     schema = load_json(root / "protocol" / filename)
     if not isinstance(schema, dict):
         raise ContractValidationError([f"schema:not_object:{filename}"])
     return schema
 
 
-def _validate(root: Path, schema_key: str, instance: Any, prefix: str) -> None:
-    schema = _schema(root, schema_key)
+def _validate(
+    root: Path,
+    schema_key: str,
+    instance: Any,
+    prefix: str,
+    *,
+    version: int = 1,
+) -> None:
+    schema = _schema(root, schema_key, version=version)
     validator = Draft202012Validator(
         schema,
         registry=_schema_registry(root),
@@ -145,29 +162,83 @@ def load_profile(root: Path, risk_level: str) -> tuple[Mapping[str, Any], str]:
     return profile, hashlib.sha256(raw).hexdigest()
 
 
+def load_resilience_profile(root: Path) -> tuple[Mapping[str, Any], str]:
+    path = root / "profiles" / "resilience.v2.json"
+    raw = path.read_bytes() if path.exists() else b""
+    if not raw:
+        raise ContractValidationError(["profile:not_found:resilience.v2"])
+    profile = load_json(path)
+    _validate(root, "evidence_profile", profile, "profile:resilience.v2", version=2)
+    cells = profile.get("cells", [])
+    keys = [(item.get("change_risk"), item.get("target_criticality")) for item in cells]
+    criticalities = {"optional", "supporting", "essential", "foundational", "unknown"}
+    expected = {(f"R{risk}", criticality) for risk in range(4) for criticality in criticalities}
+    if len(keys) != len(set(keys)):
+        raise ContractValidationError(["profile:resilience.v2:duplicate_cell"])
+    if set(keys) != expected:
+        missing = sorted(expected - set(keys))
+        extra = sorted(set(keys) - expected)
+        raise ContractValidationError(
+            [
+                f"profile:resilience.v2:matrix_incomplete:missing={missing}:extra={extra}"
+            ]
+        )
+    return profile, hashlib.sha256(raw).hexdigest()
+
+
+def _resilience_profile_cell(
+    profile: Mapping[str, Any], change_risk: str, target_criticality: str
+) -> Mapping[str, Any]:
+    for cell in profile["cells"]:
+        if cell["change_risk"] == change_risk and cell["target_criticality"] == target_criticality:
+            return cell
+    raise ContractValidationError(
+        [f"profile:resilience.v2:cell_not_found:{change_risk}:{target_criticality}"]
+    )
+
+
 def validate_request(root: Path, request: Any) -> Mapping[str, Any]:
-    _validate(root, "assessment_request", request, "request")
     if not isinstance(request, dict):
         raise ContractValidationError(["request:not_object"])
-
-    _validate(root, "observation", request["observation"], "observation")
-    _validate(root, "classification", request["classification"], "classification")
-    for index, receipt in enumerate(request["effects"]):
-        _validate(root, "effect_receipt", receipt, f"effects[{index}]")
-    for index, receipt in enumerate(request["verifications"]):
-        _validate(root, "verification_receipt", receipt, f"verifications[{index}]")
-    if "closure" in request:
-        _validate(root, "closure_receipt", request["closure"], "closure")
-    return request
+    version = request.get("schema_version")
+    if version == 1:
+        _validate(root, "assessment_request", request, "request")
+        _validate(root, "observation", request["observation"], "observation")
+        _validate(root, "classification", request["classification"], "classification")
+        for index, receipt in enumerate(request["effects"]):
+            _validate(root, "effect_receipt", receipt, f"effects[{index}]")
+        for index, receipt in enumerate(request["verifications"]):
+            _validate(root, "verification_receipt", receipt, f"verifications[{index}]")
+        if "closure" in request:
+            _validate(root, "closure_receipt", request["closure"], "closure")
+        return request
+    if version == 2:
+        _validate(root, "assessment_request", request, "request", version=2)
+        _validate(root, "observation", request["observation"], "observation")
+        _validate(root, "classification", request["classification"], "classification", version=2)
+        for index, receipt in enumerate(request["effects"]):
+            _validate(root, "effect_receipt", receipt, f"effects[{index}]")
+        for index, receipt in enumerate(request["verifications"]):
+            _validate(
+                root,
+                "verification_receipt",
+                receipt,
+                f"verifications[{index}]",
+                version=2,
+            )
+        if "closure" in request:
+            _validate(root, "closure_receipt", request["closure"], "closure", version=2)
+        return request
+    raise ContractValidationError([f"request:schema_version:unsupported:{version}"])
 
 
 def validate_contracts(root: Path) -> dict[str, Any]:
     schema_names: list[str] = []
-    for key, filename in sorted(SCHEMA_FILES.items()):
-        schema = _schema(root, key)
+    for filename in _all_schema_files():
+        schema = load_json(root / "protocol" / filename)
         try:
             Draft202012Validator.check_schema(schema)
-        except Exception as exc:  # jsonschema exposes several schema exception types
+        except Exception as exc:
             raise ContractValidationError([f"schema:invalid:{filename}:{exc}"]) from exc
         schema_names.append(filename)
 
@@ -175,6 +246,8 @@ def validate_contracts(root: Path) -> dict[str, Any]:
     for risk_level in ("R0", "R1", "R2", "R3"):
         load_profile(root, risk_level)
         profile_names.append(f"{risk_level}.v1.json")
+    load_resilience_profile(root)
+    profile_names.append("resilience.v2.json")
 
     return {
         "schema_version": 1,
@@ -215,11 +288,9 @@ def _missing_closure_fields(
     return missing
 
 
-def evaluate(request: Any, root: Path) -> dict[str, Any]:
-    validated = validate_request(root, request)
+def _evaluate_v1(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
     risk_level = str(validated["risk_level"])
     profile, profile_sha256 = load_profile(root, risk_level)
-
     effects = list(validated["effects"])
     verifications = list(validated["verifications"])
     conflicts = sorted(
@@ -235,20 +306,15 @@ def evaluate(request: Any, root: Path) -> dict[str, Any]:
     present_effects = {str(item["kind"]) for item in effects}
     present_verifications = _present_pass_verifications(verifications)
     missing = [
-        f"effect:{kind}"
-        for kind in profile["required_effects"]
-        if kind not in present_effects
+        f"effect:{kind}" for kind in profile["required_effects"] if kind not in present_effects
     ]
     missing.extend(
         f"verification:{kind}"
         for kind in profile["required_verifications"]
         if kind not in present_verifications
     )
-
     closure = validated.get("closure")
-    missing.extend(
-        _missing_closure_fields(closure, list(profile["required_closure_fields"]))
-    )
+    missing.extend(_missing_closure_fields(closure, list(profile["required_closure_fields"])))
     missing = sorted(set(missing))
 
     source_state = validated["observation"]["source_state"]
@@ -278,3 +344,119 @@ def evaluate(request: Any, root: Path) -> dict[str, Any]:
     }
     _validate(root, "transition_assessment", result, "result")
     return result
+
+
+def _resilience_conflicts(classification: Mapping[str, Any]) -> list[str]:
+    resilience = classification["resilience"]
+    primary = str(resilience["primary_failure_domain"])
+    recovery = resilience["recovery_failure_domain"]
+    common_mode = str(resilience["common_mode_risk"])
+    domains = set(classification["affected_failure_domains"])
+    conflicts: list[str] = []
+    if primary not in domains:
+        conflicts.append("classification:primary_failure_domain:not_affected")
+    if recovery is not None and recovery not in domains:
+        conflicts.append("classification:recovery_failure_domain:not_affected")
+    if common_mode == "independent" and recovery == primary:
+        conflicts.append("classification:common_mode_risk:independence_contradiction")
+    if common_mode == "same-failure-domain" and recovery is not None and recovery != primary:
+        conflicts.append("classification:common_mode_risk:same_domain_contradiction")
+    return conflicts
+
+
+def _evaluate_v2(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
+    classification = validated["classification"]
+    change_risk = str(classification["change_risk"])
+    target_criticality = str(classification["target_criticality"])
+    profile, profile_sha256 = load_resilience_profile(root)
+    cell = _resilience_profile_cell(profile, change_risk, target_criticality)
+
+    effects = list(validated["effects"])
+    verifications = list(validated["verifications"])
+    conflicts = sorted(
+        set(
+            _conflicts(effects, "effect")
+            + _conflicts(verifications, "verification")
+            + _resilience_conflicts(classification)
+        )
+    )
+
+    blocked_by = list(classification["blocked_by"])
+    if target_criticality == "unknown":
+        blocked_by.append("target_criticality:unknown")
+    for receipt in verifications:
+        if receipt["result"] == "fail":
+            blocked_by.append(f"verification:{receipt['kind']}:fail")
+
+    resilience = classification["resilience"]
+    if cell["requires_resilience_evidence"]:
+        if resilience["recovery_failure_domain"] is None:
+            blocked_by.append("resilience:recovery_failure_domain:missing")
+        if resilience["degraded_mode"] != "bounded":
+            blocked_by.append(f"resilience:degraded_mode:{resilience['degraded_mode']}")
+        if not resilience["return_to_primary_required"]:
+            blocked_by.append("resilience:return_to_primary:not_required")
+    if cell["requires_independent_recovery"] and resilience["common_mode_risk"] != "independent":
+        blocked_by.append(f"resilience:common_mode_risk:{resilience['common_mode_risk']}")
+    blocked_by = sorted(set(blocked_by))
+
+    required_verifications = list(cell["required_verifications"])
+    if cell["requires_resilience_evidence"] and resilience["split_brain_possible"]:
+        required_verifications.append("split_brain_negative_control")
+
+    present_effects = {str(item["kind"]) for item in effects}
+    present_verifications = _present_pass_verifications(verifications)
+    missing = [
+        f"effect:{kind}" for kind in cell["required_effects"] if kind not in present_effects
+    ]
+    missing.extend(
+        f"verification:{kind}"
+        for kind in required_verifications
+        if kind not in present_verifications
+    )
+    closure = validated.get("closure")
+    missing.extend(_missing_closure_fields(closure, list(cell["required_closure_fields"])))
+    missing = sorted(set(missing))
+
+    source_state = validated["observation"]["source_state"]
+    criticality_state = classification["criticality_source_state"]
+    if conflicts:
+        status = "conflicting_evidence"
+    elif source_state != "current" or criticality_state != "current":
+        status = "source_stale"
+        if source_state != "current":
+            blocked_by.append(f"source_state:{source_state}")
+        if criticality_state != "current":
+            blocked_by.append(f"criticality_source_state:{criticality_state}")
+        blocked_by = sorted(set(blocked_by))
+    elif blocked_by:
+        status = "blocked"
+    elif missing:
+        status = "evidence_missing"
+    elif closure is not None and closure["status"] == "closed":
+        status = "terminally_closed"
+    else:
+        status = "transition_allowed"
+
+    result = {
+        "schema_version": 2,
+        "assessment_id": validated["assessment_id"],
+        "change_risk": change_risk,
+        "target_criticality": target_criticality,
+        "status": status,
+        "missing_evidence": missing,
+        "conflicts": conflicts,
+        "blocked_by": blocked_by,
+        "profile_id": profile["profile_id"],
+        "profile_cell_id": cell["cell_id"],
+        "profile_sha256": profile_sha256,
+    }
+    _validate(root, "transition_assessment", result, "result", version=2)
+    return result
+
+
+def evaluate(request: Any, root: Path) -> dict[str, Any]:
+    validated = validate_request(root, request)
+    if validated["schema_version"] == 1:
+        return _evaluate_v1(validated, root)
+    return _evaluate_v2(validated, root)

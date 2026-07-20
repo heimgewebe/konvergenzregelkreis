@@ -30,6 +30,9 @@ GRABOWSKI_EXPECTED = ROOT / "conformance" / "expected" / "grabowski-pilot-r2-ter
 GRABOWSKI_CONFLICT = ROOT / "conformance" / "conflict" / "grabowski-pilot-r2-conflicting-deployment.json"
 GRABOWSKI_CONFLICT_EXPECTED = ROOT / "conformance" / "expected" / "grabowski-pilot-r2-conflicting-deployment.json"
 INVALID_FIXTURE = ROOT / "conformance" / "invalid" / "missing-source-refs.json"
+RESILIENCE_FIXTURE = ROOT / "conformance" / "valid" / "resilience-r2-foundational-terminal.v2.json"
+RESILIENCE_EXPECTED = ROOT / "conformance" / "expected" / "resilience-r2-foundational-terminal.v2.json"
+RESILIENCE_PROFILE = ROOT / "profiles" / "resilience.v2.json"
 
 
 class ContractTests(unittest.TestCase):
@@ -39,8 +42,8 @@ class ContractTests(unittest.TestCase):
     def test_all_contracts_are_valid(self) -> None:
         result = validate_contracts(ROOT)
         self.assertEqual("valid", result["status"])
-        self.assertEqual(4, len(result["profiles"]))
-        self.assertEqual(8, len(result["schemas"]))
+        self.assertEqual(5, len(result["profiles"]))
+        self.assertEqual(14, len(result["schemas"]))
 
     def test_r2_terminal_fixture_matches_expected(self) -> None:
         self.assertEqual(load_json(EXPECTED_FIXTURE), evaluate(self.request, ROOT))
@@ -151,6 +154,141 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(4, code)
         self.assertEqual("", stderr.getvalue())
         self.assertEqual("conflicting_evidence", json.loads(stdout.getvalue())["status"])
+
+
+    def test_resilience_v2_fixture_matches_expected(self) -> None:
+        self.assertEqual(
+            load_json(RESILIENCE_EXPECTED),
+            evaluate(load_json(RESILIENCE_FIXTURE), ROOT),
+        )
+
+    def test_resilience_v2_output_is_byte_deterministic(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        first = canonical_json(evaluate(request, ROOT))
+        second = canonical_json(evaluate(copy.deepcopy(request), ROOT))
+        self.assertEqual(first.encode("utf-8"), second.encode("utf-8"))
+
+    def test_resilience_v2_axes_are_independent(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["change_risk"] = "R1"
+        request["classification"]["resilience"] = {
+            "primary_failure_domain": "host:cluster-a",
+            "recovery_failure_domain": None,
+            "degraded_mode": "not_applicable",
+            "common_mode_risk": "unknown",
+            "return_to_primary_required": False,
+            "split_brain_possible": False,
+        }
+        resilience_kinds = {
+            "recovery",
+            "bounded_degradation",
+            "cleanup",
+            "return_to_primary",
+            "common_mode",
+            "split_brain_negative_control",
+        }
+        request["verifications"] = [
+            item for item in request["verifications"] if item["kind"] not in resilience_kinds
+        ]
+        for field in (
+            "recovery_evidence",
+            "degraded_mode_evidence",
+            "return_to_primary_evidence",
+        ):
+            request["closure"].pop(field)
+
+        result = evaluate(request, ROOT)
+        self.assertEqual("terminally_closed", result["status"])
+        self.assertEqual("R1-foundational", result["profile_cell_id"])
+        self.assertNotIn("verification:recovery", result["missing_evidence"])
+
+    def test_resilience_v2_missing_recovery_domain_blocks(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["resilience"]["recovery_failure_domain"] = None
+        result = evaluate(request, ROOT)
+        self.assertEqual("blocked", result["status"])
+        self.assertIn("resilience:recovery_failure_domain:missing", result["blocked_by"])
+
+    def test_resilience_v2_stale_criticality_fails_closed(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["criticality_source_state"] = "stale"
+        result = evaluate(request, ROOT)
+        self.assertEqual("source_stale", result["status"])
+        self.assertIn("criticality_source_state:stale", result["blocked_by"])
+
+    def test_resilience_v2_common_mode_contradiction_is_conflicting(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["resilience"]["recovery_failure_domain"] = "host:cluster-a"
+        result = evaluate(request, ROOT)
+        self.assertEqual("conflicting_evidence", result["status"])
+        self.assertIn(
+            "classification:common_mode_risk:independence_contradiction",
+            result["conflicts"],
+        )
+
+    def test_resilience_v2_split_brain_negative_control_is_required(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["verifications"] = [
+            item
+            for item in request["verifications"]
+            if item["kind"] != "split_brain_negative_control"
+        ]
+        result = evaluate(request, ROOT)
+        self.assertEqual("evidence_missing", result["status"])
+        self.assertEqual(
+            ["verification:split_brain_negative_control"],
+            result["missing_evidence"],
+        )
+
+    def test_resilience_v2_closure_evidence_is_required(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["closure"]["recovery_evidence"] = []
+        request["closure"]["degraded_mode_evidence"] = []
+        request["closure"]["return_to_primary_evidence"] = []
+        result = evaluate(request, ROOT)
+        self.assertEqual("evidence_missing", result["status"])
+        self.assertEqual(
+            [
+                "closure.degraded_mode_evidence",
+                "closure.recovery_evidence",
+                "closure.return_to_primary_evidence",
+            ],
+            result["missing_evidence"],
+        )
+
+    def test_resilience_v2_profile_is_complete_and_unique(self) -> None:
+        profile = load_json(RESILIENCE_PROFILE)
+        cells = [
+            (item["change_risk"], item["target_criticality"])
+            for item in profile["cells"]
+        ]
+        self.assertEqual(20, len(cells))
+        self.assertEqual(20, len(set(cells)))
+        self.assertEqual(
+            {
+                (f"R{risk}", criticality)
+                for risk in range(4)
+                for criticality in (
+                    "optional", "supporting", "essential", "foundational", "unknown"
+                )
+            },
+            set(cells),
+        )
+
+    def test_resilience_v2_unknown_target_criticality_blocks(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["target_criticality"] = "unknown"
+        result = evaluate(request, ROOT)
+        self.assertEqual("blocked", result["status"])
+        self.assertIn("target_criticality:unknown", result["blocked_by"])
+
+
+    def test_unknown_request_schema_version_is_rejected(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["schema_version"] = 3
+        with self.assertRaises(ContractValidationError) as raised:
+            evaluate(request, ROOT)
+        self.assertIn("request:schema_version:unsupported:3", raised.exception.errors)
 
 
 if __name__ == "__main__":

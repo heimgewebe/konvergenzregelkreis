@@ -20,3 +20,8 @@ Das Paket und der Protokollsatz folgen Semantic Versioning. Python-Paketversion,
 4. Unbekannte Pflichtsemantik und widersprüchliche Receipts bleiben fail-closed.
 5. Exit-Codes und Statuspräzedenz sind innerhalb 1.x stabil.
 6. Release-PRs prüfen Paketversion, Modulversion, Konformitätsfixtures und Wheel-Isolation gemeinsam.
+
+
+## Koexistenz von v1 und v2 ab Paket 1.1.0
+
+Paket 1.1.0 liefert die neuen v2-Dokumenttypen additiv neben v1 aus. Die Paket-Minorversion bedeutet nicht, dass ein v1-Dokument still zu v2 wird: Consumer wählen die Dokumentgeneration explizit über `schema_version`. v1-Auswertung, Statuspräzedenz und Exit-Codes bleiben unverändert; unbekannte Generationen scheitern fail-closed.

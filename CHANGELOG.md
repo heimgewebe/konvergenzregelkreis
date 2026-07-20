@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+### Added
+
+- additive v2-Protokollgeneration mit getrennten Achsen für Änderungsrisiko R0–R3 und den kanonischen Systemkatalog-Zielkritikalitäten;
+- vollständige, hashgebundene 4×5-Resilienz-Profilmatrix mit den kanonischen Systemkatalog-Kritikalitäten;
+- Recovery-, begrenzte Degradations-, Cleanup-, Return-to-Primary-, Common-Mode- und Split-Brain-Nachweise;
+- fail-closed Negativkontrollen für fehlende Recovery, veraltete Kritikalität, Common-Mode-Widersprüche und fehlende Split-Brain-Prüfung.
+
+### Changed
+
+- Paket- und Modulversion auf 1.1.0 synchronisiert;
+- Referenzauswertung dispatcht deterministisch zwischen unveränderter v1- und neuer v2-Semantik.
+
 ## [1.0.0] - 2026-07-16
 
 ### Added

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/evidence-profile.v2.schema.json",
+  "title": "Evidence Profile Matrix v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "description",
+    "cells"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cell_id",
+          "change_risk",
+          "target_criticality",
+          "description",
+          "required_effects",
+          "required_verifications",
+          "required_closure_fields",
+          "requires_resilience_evidence",
+          "requires_independent_recovery"
+        ],
+        "properties": {
+          "cell_id": {
+            "type": "string",
+            "pattern": "^R[0-3]-(optional|supporting|essential|foundational|unknown)$"
+          },
+          "change_risk": {
+            "enum": [
+              "R0",
+              "R1",
+              "R2",
+              "R3"
+            ]
+          },
+          "target_criticality": {
+            "enum": [
+              "optional",
+              "supporting",
+              "essential",
+              "foundational",
+              "unknown"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "required_effects": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 16,
+            "items": {
+              "enum": [
+                "commit",
+                "pull_request",
+                "merge",
+                "artifact",
+                "deployment",
+                "configuration_change"
+              ]
+            }
+          },
+          "required_verifications": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 32,
+            "items": {
+              "enum": [
+                "deterministic_regeneration",
+                "tests",
+                "review",
+                "independent_review",
+                "ci",
+                "deployment_identity",
+                "runtime_identity",
+                "service_health",
+                "smoke_test",
+                "negative_control",
+                "consumer_compatibility",
+                "recovery",
+                "product_outcome",
+                "criticality_freshness",
+                "bounded_degradation",
+                "cleanup",
+                "return_to_primary",
+                "common_mode",
+                "split_brain_negative_control"
+              ]
+            }
+          },
+          "required_closure_fields": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 16,
+            "items": {
+              "enum": [
+                "bureau_task_ref",
+                "chronik_event_ref",
+                "cleanup_evidence",
+                "recovery_evidence",
+                "degraded_mode_evidence",
+                "return_to_primary_evidence"
+              ]
+            }
+          },
+          "requires_resilience_evidence": {
+            "type": "boolean"
+          },
+          "requires_independent_recovery": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

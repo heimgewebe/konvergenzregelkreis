@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/assessment-request.v2.schema.json",
+  "title": "Assessment Request v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "observation",
+    "classification",
+    "effects",
+    "verifications"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "assessment_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "observation": {
+      "$ref": "observation.v1.schema.json"
+    },
+    "classification": {
+      "$ref": "classification.v2.schema.json"
+    },
+    "effects": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "effect-receipt.v1.schema.json"
+      }
+    },
+    "verifications": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "verification-receipt.v2.schema.json"
+      }
+    },
+    "closure": {
+      "$ref": "closure-receipt.v2.schema.json"
+    }
+  }
+}
