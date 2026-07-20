@@ -395,6 +395,15 @@ class ContractTests(unittest.TestCase):
             evaluate(request, ROOT)
         self.assertTrue(any("verifications" in error for error in raised.exception.errors))
 
+    def test_integral_float_schema_versions_remain_backward_compatible(self) -> None:
+        v1_request = load_json(VALID_FIXTURE)
+        v1_request["schema_version"] = 1.0
+        self.assertEqual("terminally_closed", evaluate(v1_request, ROOT)["status"])
+
+        v2_request = load_json(RESILIENCE_FIXTURE)
+        v2_request["schema_version"] = 2.0
+        self.assertEqual("terminally_closed", evaluate(v2_request, ROOT)["status"])
+
     def test_non_scalar_request_schema_version_is_rejected_cleanly(self) -> None:
         request = load_json(RESILIENCE_FIXTURE)
         request["schema_version"] = []

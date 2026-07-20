@@ -310,16 +310,19 @@ def _validate_request_version(
             )
 
 
+def _dispatch_schema_version(value: Any) -> int:
+    if isinstance(value, bool):
+        raise ContractValidationError([f"request:schema_version:unsupported:{value}"])
+    for version in REQUEST_COMPONENTS_BY_VERSION:
+        if value == version:
+            return version
+    raise ContractValidationError([f"request:schema_version:unsupported:{value}"])
+
+
 def validate_request(root: Path, request: Any) -> Mapping[str, Any]:
     if not isinstance(request, dict):
         raise ContractValidationError(["request:not_object"])
-    version = request.get("schema_version")
-    if (
-        not isinstance(version, int)
-        or isinstance(version, bool)
-        or version not in REQUEST_COMPONENTS_BY_VERSION
-    ):
-        raise ContractValidationError([f"request:schema_version:unsupported:{version}"])
+    version = _dispatch_schema_version(request.get("schema_version"))
     _validate_request_version(root, request, version)
     return request
 
