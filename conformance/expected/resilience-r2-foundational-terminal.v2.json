@@ -1,0 +1,13 @@
+{
+  "assessment_id": "resilience-r2-foundational-terminal",
+  "blocked_by": [],
+  "change_risk": "R2",
+  "conflicts": [],
+  "missing_evidence": [],
+  "profile_cell_id": "R2-foundational",
+  "profile_id": "resilience-matrix-v2",
+  "profile_sha256": "8f8569eefc2ee250ec402e4021337e0a75d0469183f86278690412cce08c3391",
+  "schema_version": 2,
+  "status": "terminally_closed",
+  "target_criticality": "foundational"
+}

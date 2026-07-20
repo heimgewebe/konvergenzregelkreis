@@ -11,7 +11,7 @@ Der Konvergenzregelkreis definiert, welche Belege zwischen Beobachtung und syste
 Der Konvergenzregelkreis besitzt:
 
 - die Protokollschemas für Observation, Classification, Effect, Verification und Closure;
-- risikobasierte Evidence-Profile R0–R3;
+- risikobasierte Evidence-Profile R0–R3 sowie die v2-Kreuzproduktmatrix mit kanonischer Zielkritikalität;
 - deterministische Übergangsregeln;
 - Konformitätsfixtures und eine zustandslose Referenzauswertung.
 
@@ -51,7 +51,9 @@ regelkreis evaluate conformance/valid/r2-terminal.json
 
 Die Ausgabe ist deterministisch: gleiche Eingaben und gleiche Vertragsdateien erzeugen bytegleiche JSON-Ausgaben. Es gibt keine Netzwerkzugriffe, Datenbank, Uhrzeitabfrage oder Mutation.
 
-## Risikoprofile
+## Evidence-Profile
+
+v1 bewertet Änderungsrisiken R0–R3 unverändert:
 
 | Profil | Typischer Fall | Mindestanforderung |
 |---|---|---|
@@ -59,6 +61,8 @@ Die Ausgabe ist deterministisch: gleiche Eingaben und gleiche Vertragsdateien er
 | R1 | interne Codeänderung | Tests, Review, Mergebeleg |
 | R2 | Dienst- oder Runtimeänderung | R1 plus Deployment und Live-Verifikation |
 | R3 | Security, Daten, irreversible Wirkung | R2 plus unabhängige Prüfung und Recovery-Beleg |
+
+v2 ergänzt die unabhängige kanonischer Zielkritikalität. Die 4×5-Matrix fordert Recovery-, Degradations-, Cleanup- und Return-to-Primary-Belege nur für die dafür definierten Kreuzprodukte. Details und Negativkontrollen stehen unter [`docs/resilience-evidence-profiles-v2.md`](docs/resilience-evidence-profiles-v2.md).
 
 ## Entwicklung
 
@@ -72,4 +76,4 @@ Architektur, Autoritätsgrenzen, Threat Model sowie verbindliche SemVer- und Mig
 
 ## Status
 
-Version `1.0.0` enthält zwei unabhängige terminal geschlossene R2-Piloten: Systemkatalog-Drift und Grabowski Merge→Deployment→Live. Ein reproduzierbarer Negative-Control-Konflikt belegt `conflicting_evidence` trotz vollständiger Closure. Der Protokollkern bleibt zustandslos und übernimmt keine Wahrheit seiner Consumer.
+Version `1.1.0` ergänzt additive v2-Dokumente für resilienzbewusste Evidence-Profile. v1 bleibt vollständig lesbar und bytegleich auswertbar. Die Referenzfixture `R2-foundational` belegt Recovery, begrenzten Degradationsbetrieb, Cleanup, Rückkehr zum Primärpfad, unabhängige Failure-Domains und Split-Brain-Negativkontrolle.

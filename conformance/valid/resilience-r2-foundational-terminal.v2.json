@@ -1,0 +1,202 @@
+{
+  "schema_version": 2,
+  "assessment_id": "resilience-r2-foundational-terminal",
+  "observation": {
+    "schema_version": 1,
+    "observation_id": "obs-resilience-r2-foundational",
+    "observed_at": "2026-07-20T16:00:00Z",
+    "source_state": "current",
+    "source_refs": [
+      {
+        "kind": "git_commit",
+        "ref": "github:heimgewebe/example@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "claims": [
+      "Primär- und Recovery-Pfad wurden gegen aktuelle Quellen beobachtet."
+    ],
+    "does_not_establish": [
+      "product_outcome"
+    ]
+  },
+  "classification": {
+    "schema_version": 2,
+    "change_class": "infrastructure",
+    "semantic_change": "material",
+    "change_risk": "R2",
+    "target_criticality": "foundational",
+    "criticality_source_ref": "urn:example:systemkatalog:resilience.v1#systems/example-critical-service",
+    "criticality_source_state": "current",
+    "affected_failure_domains": [
+      "host:cluster-a",
+      "host:cluster-b"
+    ],
+    "resilience": {
+      "primary_failure_domain": "host:cluster-a",
+      "recovery_failure_domain": "host:cluster-b",
+      "degraded_mode": "bounded",
+      "common_mode_risk": "independent",
+      "return_to_primary_required": true,
+      "split_brain_possible": true
+    },
+    "blocked_by": [],
+    "target_ref": "system:example-critical-service",
+    "criticality_source_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "effects": [
+    {
+      "schema_version": 1,
+      "kind": "merge",
+      "evidence_ref": "github:heimgewebe/example#2:merge",
+      "subject_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "schema_version": 1,
+      "kind": "deployment",
+      "evidence_ref": "deployment:example:release-2",
+      "subject_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "verifications": [
+    {
+      "schema_version": 2,
+      "kind": "tests",
+      "evidence_ref": "evidence:tests:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000010",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "review",
+      "evidence_ref": "evidence:review:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000011",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "ci",
+      "evidence_ref": "evidence:ci:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000012",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "deployment_identity",
+      "evidence_ref": "evidence:deployment_identity:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000013",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "runtime_identity",
+      "evidence_ref": "evidence:runtime_identity:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000014",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "service_health",
+      "evidence_ref": "evidence:service_health:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000015",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "smoke_test",
+      "evidence_ref": "evidence:smoke_test:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000016",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "negative_control",
+      "evidence_ref": "evidence:negative_control:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000017",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "consumer_compatibility",
+      "evidence_ref": "evidence:consumer_compatibility:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000018",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "criticality_freshness",
+      "evidence_ref": "evidence:criticality_freshness:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000019",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "independent_review",
+      "evidence_ref": "evidence:independent_review:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001a",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "recovery",
+      "evidence_ref": "evidence:recovery:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001b",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "bounded_degradation",
+      "evidence_ref": "evidence:bounded_degradation:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001c",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "cleanup",
+      "evidence_ref": "evidence:cleanup:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "return_to_primary",
+      "evidence_ref": "evidence:return_to_primary:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001e",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "common_mode",
+      "evidence_ref": "evidence:common_mode:r2-foundational",
+      "subject_sha256": "000000000000000000000000000000000000000000000000000000000000001f",
+      "result": "pass"
+    },
+    {
+      "schema_version": 2,
+      "kind": "split_brain_negative_control",
+      "evidence_ref": "evidence:split_brain_negative_control:r2-foundational",
+      "subject_sha256": "0000000000000000000000000000000000000000000000000000000000000020",
+      "result": "pass"
+    }
+  ],
+  "closure": {
+    "schema_version": 2,
+    "closure_id": "closure-resilience-r2-foundational",
+    "status": "closed",
+    "bureau_task_ref": "bureau:HEIMGEWEBE-RESILIENZ-V1-T008",
+    "chronik_event_ref": "chronik:event:resilience-r2-foundational",
+    "cleanup_evidence": [
+      "grabowski:cleanup:resilience-r2-foundational"
+    ],
+    "recovery_evidence": [
+      "recovery:exercise:resilience-r2-foundational"
+    ],
+    "degraded_mode_evidence": [
+      "smoke:degraded-mode:bounded"
+    ],
+    "return_to_primary_evidence": [
+      "recovery:return-to-primary:pass"
+    ],
+    "residual_risks": []
+  }
+}

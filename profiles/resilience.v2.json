@@ -1,0 +1,536 @@
+{
+  "schema_version": 2,
+  "profile_id": "resilience-matrix-v2",
+  "description": "Deterministische Kreuzproduktmatrix aus Änderungsrisiko R0-R3 und den kanonischen Systemkatalog-Kritikalitäten optional, supporting, essential, foundational und unknown. v1-Profile bleiben unverändert.",
+  "cells": [
+    {
+      "cell_id": "R0-optional",
+      "change_risk": "R0",
+      "target_criticality": "optional",
+      "description": "Änderungsrisiko R0 und kanonische Zielkritikalität optional; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "commit"
+      ],
+      "required_verifications": [
+        "deterministic_regeneration"
+      ],
+      "required_closure_fields": [],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R0-supporting",
+      "change_risk": "R0",
+      "target_criticality": "supporting",
+      "description": "Änderungsrisiko R0 und kanonische Zielkritikalität supporting; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "commit"
+      ],
+      "required_verifications": [
+        "deterministic_regeneration"
+      ],
+      "required_closure_fields": [],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R0-essential",
+      "change_risk": "R0",
+      "target_criticality": "essential",
+      "description": "Änderungsrisiko R0 und kanonische Zielkritikalität essential; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "commit"
+      ],
+      "required_verifications": [
+        "deterministic_regeneration"
+      ],
+      "required_closure_fields": [],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R0-foundational",
+      "change_risk": "R0",
+      "target_criticality": "foundational",
+      "description": "Änderungsrisiko R0 und kanonische Zielkritikalität foundational; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "commit"
+      ],
+      "required_verifications": [
+        "deterministic_regeneration"
+      ],
+      "required_closure_fields": [],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R0-unknown",
+      "change_risk": "R0",
+      "target_criticality": "unknown",
+      "description": "Änderungsrisiko R0 und kanonische Zielkritikalität unknown; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "commit"
+      ],
+      "required_verifications": [
+        "deterministic_regeneration"
+      ],
+      "required_closure_fields": [],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R1-optional",
+      "change_risk": "R1",
+      "target_criticality": "optional",
+      "description": "Änderungsrisiko R1 und kanonische Zielkritikalität optional; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R1-supporting",
+      "change_risk": "R1",
+      "target_criticality": "supporting",
+      "description": "Änderungsrisiko R1 und kanonische Zielkritikalität supporting; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R1-essential",
+      "change_risk": "R1",
+      "target_criticality": "essential",
+      "description": "Änderungsrisiko R1 und kanonische Zielkritikalität essential; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "consumer_compatibility",
+        "criticality_freshness"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R1-foundational",
+      "change_risk": "R1",
+      "target_criticality": "foundational",
+      "description": "Änderungsrisiko R1 und kanonische Zielkritikalität foundational; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "consumer_compatibility",
+        "criticality_freshness",
+        "independent_review"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R1-unknown",
+      "change_risk": "R1",
+      "target_criticality": "unknown",
+      "description": "Änderungsrisiko R1 und kanonische Zielkritikalität unknown; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "consumer_compatibility",
+        "criticality_freshness",
+        "independent_review"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R2-optional",
+      "change_risk": "R2",
+      "target_criticality": "optional",
+      "description": "Änderungsrisiko R2 und kanonische Zielkritikalität optional; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R2-supporting",
+      "change_risk": "R2",
+      "target_criticality": "supporting",
+      "description": "Änderungsrisiko R2 und kanonische Zielkritikalität supporting; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence"
+      ],
+      "requires_resilience_evidence": false,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R2-essential",
+      "change_risk": "R2",
+      "target_criticality": "essential",
+      "description": "Änderungsrisiko R2 und kanonische Zielkritikalität essential; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "criticality_freshness",
+        "recovery",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R2-foundational",
+      "change_risk": "R2",
+      "target_criticality": "foundational",
+      "description": "Änderungsrisiko R2 und kanonische Zielkritikalität foundational; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "criticality_freshness",
+        "independent_review",
+        "recovery",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary",
+        "common_mode"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": true
+    },
+    {
+      "cell_id": "R2-unknown",
+      "change_risk": "R2",
+      "target_criticality": "unknown",
+      "description": "Änderungsrisiko R2 und kanonische Zielkritikalität unknown; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "criticality_freshness",
+        "independent_review",
+        "recovery",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary",
+        "common_mode"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": true
+    },
+    {
+      "cell_id": "R3-optional",
+      "change_risk": "R3",
+      "target_criticality": "optional",
+      "description": "Änderungsrisiko R3 und kanonische Zielkritikalität optional; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "independent_review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "recovery",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R3-supporting",
+      "change_risk": "R3",
+      "target_criticality": "supporting",
+      "description": "Änderungsrisiko R3 und kanonische Zielkritikalität supporting; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "independent_review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "recovery",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R3-essential",
+      "change_risk": "R3",
+      "target_criticality": "essential",
+      "description": "Änderungsrisiko R3 und kanonische Zielkritikalität essential; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "independent_review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "recovery",
+        "criticality_freshness",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": false
+    },
+    {
+      "cell_id": "R3-foundational",
+      "change_risk": "R3",
+      "target_criticality": "foundational",
+      "description": "Änderungsrisiko R3 und kanonische Zielkritikalität foundational; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "independent_review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "recovery",
+        "criticality_freshness",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary",
+        "common_mode"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": true
+    },
+    {
+      "cell_id": "R3-unknown",
+      "change_risk": "R3",
+      "target_criticality": "unknown",
+      "description": "Änderungsrisiko R3 und kanonische Zielkritikalität unknown; beide Achsen bleiben getrennt und wählen deterministisch die Nachweisschwelle.",
+      "required_effects": [
+        "merge",
+        "deployment"
+      ],
+      "required_verifications": [
+        "tests",
+        "review",
+        "independent_review",
+        "ci",
+        "deployment_identity",
+        "runtime_identity",
+        "service_health",
+        "smoke_test",
+        "negative_control",
+        "consumer_compatibility",
+        "recovery",
+        "criticality_freshness",
+        "bounded_degradation",
+        "cleanup",
+        "return_to_primary",
+        "common_mode"
+      ],
+      "required_closure_fields": [
+        "bureau_task_ref",
+        "chronik_event_ref",
+        "cleanup_evidence",
+        "recovery_evidence",
+        "degraded_mode_evidence",
+        "return_to_primary_evidence"
+      ],
+      "requires_resilience_evidence": true,
+      "requires_independent_recovery": true
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/transition-assessment.v2.schema.json",
+  "title": "Transition Assessment v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "change_risk",
+    "target_criticality",
+    "status",
+    "missing_evidence",
+    "conflicts",
+    "blocked_by",
+    "profile_id",
+    "profile_cell_id",
+    "profile_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "assessment_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "change_risk": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "target_criticality": {
+      "enum": [
+        "optional",
+        "supporting",
+        "essential",
+        "foundational",
+        "unknown"
+      ]
+    },
+    "status": {
+      "enum": [
+        "transition_allowed",
+        "terminally_closed",
+        "evidence_missing",
+        "conflicting_evidence",
+        "source_stale",
+        "blocked"
+      ]
+    },
+    "missing_evidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "blocked_by": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "profile_cell_id": {
+      "type": "string",
+      "pattern": "^R[0-3]-(optional|supporting|essential|foundational|unknown)$"
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
