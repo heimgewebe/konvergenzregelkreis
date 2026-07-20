@@ -4,6 +4,7 @@ import copy
 import io
 import json
 import re
+import shutil
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -17,6 +18,7 @@ from regelkreis.core import (
     canonical_json,
     evaluate,
     load_json,
+    load_resilience_profile,
     validate_contracts,
 )
 
@@ -281,7 +283,133 @@ class ContractTests(unittest.TestCase):
         result = evaluate(request, ROOT)
         self.assertEqual("blocked", result["status"])
         self.assertIn("target_criticality:unknown", result["blocked_by"])
+        self.assertEqual("R2-unknown", result["profile_cell_id"])
 
+
+    def test_missing_resilience_profile_is_reported_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            (root / "profiles").mkdir()
+            with self.assertRaises(ContractValidationError) as raised:
+                load_resilience_profile(root)
+        self.assertEqual(("profile:not_found:resilience.v2",), raised.exception.errors)
+
+    def test_empty_resilience_profile_is_reported_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            (root / "profiles").mkdir()
+            (root / "profiles" / "resilience.v2.json").write_bytes(b"")
+            with self.assertRaises(ContractValidationError) as raised:
+                load_resilience_profile(root)
+        self.assertEqual(("profile:empty:resilience.v2",), raised.exception.errors)
+
+    def test_resilience_profile_duplicate_names_exact_cell(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            shutil.copytree(ROOT / "profiles", root / "profiles")
+            profile_path = root / "profiles" / "resilience.v2.json"
+            profile = load_json(profile_path)
+            profile["cells"][-1] = copy.deepcopy(profile["cells"][0])
+            profile_path.write_text(json.dumps(profile), encoding="utf-8")
+            with self.assertRaises(ContractValidationError) as raised:
+                load_resilience_profile(root)
+        self.assertIn(
+            "profile:resilience.v2:duplicate_cell:R0-optional:count=2",
+            raised.exception.errors,
+        )
+
+    def test_resilience_v2_split_brain_control_is_conditional(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["resilience"]["split_brain_possible"] = False
+        request["verifications"] = [
+            item
+            for item in request["verifications"]
+            if item["kind"] != "split_brain_negative_control"
+        ]
+        result = evaluate(request, ROOT)
+        self.assertEqual("terminally_closed", result["status"])
+        self.assertNotIn(
+            "verification:split_brain_negative_control", result["missing_evidence"]
+        )
+
+    def test_resilience_v2_unbounded_or_unknown_degraded_mode_blocks(self) -> None:
+        for degraded_mode in ("unbounded", "unknown"):
+            with self.subTest(degraded_mode=degraded_mode):
+                request = load_json(RESILIENCE_FIXTURE)
+                request["classification"]["resilience"]["degraded_mode"] = degraded_mode
+                result = evaluate(request, ROOT)
+                self.assertEqual("blocked", result["status"])
+                self.assertIn(
+                    f"resilience:degraded_mode:{degraded_mode}", result["blocked_by"]
+                )
+
+    def test_resilience_v2_partially_shared_foundational_recovery_blocks(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["resilience"]["common_mode_risk"] = "partially-shared"
+        result = evaluate(request, ROOT)
+        self.assertEqual("blocked", result["status"])
+        self.assertIn(
+            "resilience:common_mode_risk:partially-shared", result["blocked_by"]
+        )
+
+    def test_resilience_v2_return_to_primary_must_be_required(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["resilience"]["return_to_primary_required"] = False
+        result = evaluate(request, ROOT)
+        self.assertEqual("blocked", result["status"])
+        self.assertIn("resilience:return_to_primary:not_required", result["blocked_by"])
+
+    def test_resilience_v2_conflict_precedes_stale_source(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["criticality_source_state"] = "stale"
+        request["classification"]["resilience"]["recovery_failure_domain"] = "host:cluster-a"
+        result = evaluate(request, ROOT)
+        self.assertEqual("conflicting_evidence", result["status"])
+        self.assertIn(
+            "classification:common_mode_risk:independence_contradiction",
+            result["conflicts"],
+        )
+        self.assertNotIn("criticality_source_state:stale", result["blocked_by"])
+
+    def test_resilience_v2_rejects_too_many_failure_domains(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["affected_failure_domains"] = [
+            f"host:domain-{index}" for index in range(33)
+        ]
+        request["classification"]["resilience"]["primary_failure_domain"] = "host:domain-0"
+        request["classification"]["resilience"]["recovery_failure_domain"] = "host:domain-1"
+        with self.assertRaises(ContractValidationError) as raised:
+            evaluate(request, ROOT)
+        self.assertTrue(
+            any("affected_failure_domains" in error for error in raised.exception.errors)
+        )
+
+    def test_resilience_v2_rejects_too_many_verifications(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        template = copy.deepcopy(request["verifications"][0])
+        request["verifications"] = [copy.deepcopy(template) for _ in range(129)]
+        with self.assertRaises(ContractValidationError) as raised:
+            evaluate(request, ROOT)
+        self.assertTrue(any("verifications" in error for error in raised.exception.errors))
+
+    def test_non_scalar_request_schema_version_is_rejected_cleanly(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["schema_version"] = []
+        with self.assertRaises(ContractValidationError) as raised:
+            evaluate(request, ROOT)
+        self.assertIn("request:schema_version:unsupported:[]", raised.exception.errors)
+
+    def test_resilience_v2_invalid_criticality_source_hash_is_rejected(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["criticality_source_sha256"] = "not-a-sha256"
+        with self.assertRaises(ContractValidationError) as raised:
+            evaluate(request, ROOT)
+        self.assertTrue(
+            any("criticality_source_sha256" in error for error in raised.exception.errors)
+        )
 
     def test_unknown_request_schema_version_is_rejected(self) -> None:
         request = load_json(RESILIENCE_FIXTURE)
