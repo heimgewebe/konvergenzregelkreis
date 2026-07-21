@@ -4,6 +4,20 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-07-21
+
+### Changed
+
+- Resilienzprofil-Index greift nach erfolgreicher Schema-Validierung direkt auf Pflichtfelder zu, statt fehlende Werte als `"None"` zu verschleiern;
+- Evidence-Helfer akzeptieren Sequenzen direkt und vermeiden unnötige Kopien validierter Receipt-Arrays;
+- Missing-Evidence wird direkt als Menge aufgebaut;
+- Schema-Versionen normalisieren explizit Integer und ganzzahlige Floats, während Bool- und gebrochene Werte fail-closed bleiben;
+- Statuspräzedenz und der bewusste Verzicht auf einen root-basierten Profilcache sind dokumentiert.
+
+### Tests
+
+- Abdeckung für leere v1-Profile, fehlende Pflichtfelder in v2-Profilzellen, `unknown` plus Split-Brain sowie ungültige Bool-/Fractional-Schema-Versionen ergänzt.
+
 ## [1.1.1] - 2026-07-20
 
 ### Changed

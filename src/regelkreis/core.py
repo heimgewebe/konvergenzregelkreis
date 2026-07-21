@@ -5,7 +5,7 @@ import json
 import sysconfig
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, NamedTuple
+from typing import Any, Callable, Iterable, Mapping, NamedTuple, Sequence
 
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
@@ -220,9 +220,9 @@ def load_profile(root: Path, risk_level: str) -> tuple[Mapping[str, Any], str]:
 def _resilience_profile_index(
     profile: Mapping[str, Any],
 ) -> dict[tuple[str, str], Mapping[str, Any]]:
-    cells = list(profile.get("cells", []))
+    cells = list(profile["cells"])
     keys = [
-        (str(item.get("change_risk")), str(item.get("target_criticality")))
+        (item["change_risk"], item["target_criticality"])
         for item in cells
     ]
     counts = Counter(keys)
@@ -261,6 +261,8 @@ def _load_resilience_profile_bundle(
     raw = _read_profile_bytes(path, "resilience.v2")
     profile = load_json(path)
     _validate(root, "evidence_profile", profile, "profile:resilience.v2", version=2)
+    # Intentionally rebuild from current bytes: caching by root could stale the
+    # profile/index while profile_sha256 is expected to bind current contract truth.
     index = _resilience_profile_index(profile)
     return profile, hashlib.sha256(raw).hexdigest(), index
 
@@ -313,9 +315,14 @@ def _validate_request_version(
 def _dispatch_schema_version(value: Any) -> int:
     if isinstance(value, bool):
         raise ContractValidationError([f"request:schema_version:unsupported:{value}"])
-    for version in REQUEST_COMPONENTS_BY_VERSION:
-        if value == version:
-            return version
+    if isinstance(value, int):
+        version = value
+    elif isinstance(value, float) and value.is_integer():
+        version = int(value)
+    else:
+        raise ContractValidationError([f"request:schema_version:unsupported:{value}"])
+    if version in REQUEST_COMPONENTS_BY_VERSION:
+        return version
     raise ContractValidationError([f"request:schema_version:unsupported:{value}"])
 
 
@@ -352,7 +359,7 @@ def validate_contracts(root: Path) -> dict[str, Any]:
     }
 
 
-def _conflicts(receipts: list[Mapping[str, Any]], category: str) -> list[str]:
+def _conflicts(receipts: Sequence[Mapping[str, Any]], category: str) -> list[str]:
     by_kind: dict[str, set[str]] = {}
     for receipt in receipts:
         by_kind.setdefault(str(receipt["kind"]), set()).add(str(receipt["subject_sha256"]))
@@ -363,12 +370,12 @@ def _conflicts(receipts: list[Mapping[str, Any]], category: str) -> list[str]:
     ]
 
 
-def _present_pass_verifications(receipts: list[Mapping[str, Any]]) -> set[str]:
+def _present_pass_verifications(receipts: Sequence[Mapping[str, Any]]) -> set[str]:
     return {str(item["kind"]) for item in receipts if item["result"] == VERIFICATION_PASS}
 
 
 def _missing_closure_fields(
-    closure: Mapping[str, Any] | None, required_fields: list[str]
+    closure: Mapping[str, Any] | None, required_fields: Sequence[str]
 ) -> list[str]:
     if not required_fields:
         return []
@@ -384,12 +391,12 @@ def _missing_closure_fields(
 
 
 def _evidence_state(
-    effects: list[Mapping[str, Any]],
-    verifications: list[Mapping[str, Any]],
+    effects: Sequence[Mapping[str, Any]],
+    verifications: Sequence[Mapping[str, Any]],
     required_effects: Iterable[str],
     required_verifications: Iterable[str],
     closure: Mapping[str, Any] | None,
-    required_closure_fields: list[str],
+    required_closure_fields: Sequence[str],
 ) -> tuple[list[str], list[str], list[str]]:
     conflicts = sorted(
         set(_conflicts(effects, "effect") + _conflicts(verifications, "verification"))
@@ -403,16 +410,16 @@ def _evidence_state(
     )
     present_effects = {str(item["kind"]) for item in effects}
     present_verifications = _present_pass_verifications(verifications)
-    missing = [
+    missing = {
         f"effect:{kind}" for kind in required_effects if kind not in present_effects
-    ]
-    missing.extend(
+    }
+    missing.update(
         f"verification:{kind}"
         for kind in required_verifications
         if kind not in present_verifications
     )
-    missing.extend(_missing_closure_fields(closure, required_closure_fields))
-    return conflicts, failed_verifications, sorted(set(missing))
+    missing.update(_missing_closure_fields(closure, required_closure_fields))
+    return conflicts, failed_verifications, sorted(missing)
 
 
 def _resolve_status(
@@ -446,8 +453,8 @@ def _resolve_status(
 def _evaluate_v1(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
     risk_level = str(validated["risk_level"])
     profile, profile_sha256 = load_profile(root, risk_level)
-    effects = list(validated["effects"])
-    verifications = list(validated["verifications"])
+    effects = validated["effects"]
+    verifications = validated["verifications"]
     closure = validated.get("closure")
     conflicts, failed_verifications, missing = _evidence_state(
         effects,
@@ -504,8 +511,8 @@ def _evaluate_v2(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
     profile, profile_sha256, profile_index = _load_resilience_profile_bundle(root)
     cell = _resilience_profile_cell(profile_index, change_risk, target_criticality)
 
-    effects = list(validated["effects"])
-    verifications = list(validated["verifications"])
+    effects = validated["effects"]
+    verifications = validated["verifications"]
     resilience = classification["resilience"]
     required_verifications = list(cell["required_verifications"])
     if cell["requires_resilience_evidence"] and resilience["split_brain_possible"]:
@@ -577,6 +584,8 @@ EVALUATORS_BY_VERSION: dict[
 def evaluate(request: Any, root: Path) -> dict[str, Any]:
     validated = validate_request(root, request)
     version = int(validated["schema_version"])
+    # Retain a fail-closed guard against future registry drift even though
+    # validate_request already rejects versions without request configuration.
     try:
         evaluator = EVALUATORS_BY_VERSION[version]
     except KeyError as exc:

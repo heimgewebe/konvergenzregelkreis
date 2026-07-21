@@ -13,11 +13,14 @@ from pathlib import Path
 import regelkreis
 from regelkreis.cli import main
 from regelkreis.core import (
+    EVALUATORS_BY_VERSION,
     MAX_JSON_BYTES,
+    REQUEST_COMPONENTS_BY_VERSION,
     ContractValidationError,
     canonical_json,
     evaluate,
     load_json,
+    load_profile,
     load_resilience_profile,
     validate_contracts,
 )
@@ -286,6 +289,30 @@ class ContractTests(unittest.TestCase):
         self.assertEqual("R2-unknown", result["profile_cell_id"])
 
 
+    def test_empty_v1_profile_is_reported_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            (root / "profiles").mkdir()
+            (root / "profiles" / "R0.v1.json").write_bytes(b"")
+            with self.assertRaises(ContractValidationError) as raised:
+                load_profile(root, "R0")
+        self.assertEqual(("profile:empty:R0",), raised.exception.errors)
+
+    def test_resilience_profile_hash_tracks_current_file_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            shutil.copytree(ROOT / "profiles", root / "profiles")
+            profile_path = root / "profiles" / "resilience.v2.json"
+            _, first_sha256 = load_resilience_profile(root)
+            profile_path.write_text(
+                profile_path.read_text(encoding="utf-8") + "\n",
+                encoding="utf-8",
+            )
+            _, second_sha256 = load_resilience_profile(root)
+        self.assertNotEqual(first_sha256, second_sha256)
+
     def test_missing_resilience_profile_is_reported_explicitly(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -319,6 +346,36 @@ class ContractTests(unittest.TestCase):
         self.assertIn(
             "profile:resilience.v2:duplicate_cell:R0-optional:count=2",
             raised.exception.errors,
+        )
+
+    def test_resilience_profile_missing_required_cell_field_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "protocol", root / "protocol")
+            shutil.copytree(ROOT / "profiles", root / "profiles")
+            profile_path = root / "profiles" / "resilience.v2.json"
+            profile = load_json(profile_path)
+            profile["cells"][0].pop("required_verifications")
+            profile_path.write_text(json.dumps(profile), encoding="utf-8")
+            with self.assertRaises(ContractValidationError) as raised:
+                load_resilience_profile(root)
+        self.assertTrue(
+            any("required_verifications" in error for error in raised.exception.errors)
+        )
+
+    def test_resilience_v2_unknown_criticality_still_reports_split_brain_evidence(self) -> None:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["target_criticality"] = "unknown"
+        request["verifications"] = [
+            item
+            for item in request["verifications"]
+            if item["kind"] != "split_brain_negative_control"
+        ]
+        result = evaluate(request, ROOT)
+        self.assertEqual("blocked", result["status"])
+        self.assertIn("target_criticality:unknown", result["blocked_by"])
+        self.assertIn(
+            "verification:split_brain_negative_control", result["missing_evidence"]
         )
 
     def test_resilience_v2_split_brain_control_is_conditional(self) -> None:
@@ -395,6 +452,12 @@ class ContractTests(unittest.TestCase):
             evaluate(request, ROOT)
         self.assertTrue(any("verifications" in error for error in raised.exception.errors))
 
+    def test_request_and_evaluator_version_registries_stay_aligned(self) -> None:
+        self.assertEqual(
+            set(REQUEST_COMPONENTS_BY_VERSION),
+            set(EVALUATORS_BY_VERSION),
+        )
+
     def test_integral_float_schema_versions_remain_backward_compatible(self) -> None:
         v1_request = load_json(VALID_FIXTURE)
         v1_request["schema_version"] = 1.0
@@ -403,6 +466,18 @@ class ContractTests(unittest.TestCase):
         v2_request = load_json(RESILIENCE_FIXTURE)
         v2_request["schema_version"] = 2.0
         self.assertEqual("terminally_closed", evaluate(v2_request, ROOT)["status"])
+
+    def test_fractional_and_boolean_schema_versions_are_rejected(self) -> None:
+        for schema_version in (1.5, True, False):
+            with self.subTest(schema_version=schema_version):
+                request = load_json(RESILIENCE_FIXTURE)
+                request["schema_version"] = schema_version
+                with self.assertRaises(ContractValidationError) as raised:
+                    evaluate(request, ROOT)
+                self.assertIn(
+                    f"request:schema_version:unsupported:{schema_version}",
+                    raised.exception.errors,
+                )
 
     def test_non_scalar_request_schema_version_is_rejected_cleanly(self) -> None:
         request = load_json(RESILIENCE_FIXTURE)
