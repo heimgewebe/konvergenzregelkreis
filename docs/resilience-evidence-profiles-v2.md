@@ -37,6 +37,10 @@ Die Auswertung blockiert oder widerspricht, wenn:
 - Recovery-, Degradations-, Cleanup- oder Return-to-Primary-Belege fehlen;
 - Split-Brain möglich ist, aber der Negativkontrollbeleg fehlt.
 
+## Statuspräzedenz
+
+Die Auswertung ist fail-closed und verwendet für v1 und v2 dieselbe deterministische Präzedenz: `conflicting_evidence` vor `source_stale`, dann `blocked`, dann `evidence_missing`. Erst wenn keine dieser Bedingungen greift, kann eine geschlossene Closure `terminally_closed` ergeben; andernfalls bleibt der Status `transition_allowed`. Ein v2-spezifischer Befund wie `target_criticality: unknown` wird deshalb als Blocker an den gemeinsamen Resolver übergeben, statt die versionsneutrale Statuslogik zu duplizieren.
+
 ## Rückwärtskompatibilität
 
 - Alle v1-Schemas, Profile, Fixtures, Statuswerte, Exit-Codes und die Statuspräzedenz bleiben unverändert.
