@@ -62,7 +62,11 @@ v1 bewertet Änderungsrisiken R0–R3 unverändert:
 | R2 | Dienst- oder Runtimeänderung | R1 plus Deployment und Live-Verifikation |
 | R3 | Security, Daten, irreversible Wirkung | R2 plus unabhängige Prüfung und Recovery-Beleg |
 
-v2 ergänzt die unabhängige kanonischer Zielkritikalität. Die 4×5-Matrix fordert Recovery-, Degradations-, Cleanup- und Return-to-Primary-Belege nur für die dafür definierten Kreuzprodukte. Details und Negativkontrollen stehen unter [`docs/resilience-evidence-profiles-v2.md`](docs/resilience-evidence-profiles-v2.md).
+v2 ergänzt die unabhängige Achse der kanonischen Zielkritikalität. Die 4×5-Matrix fordert Recovery-, Degradations-, Cleanup- und Return-to-Primary-Belege nur für die dafür definierten Kreuzprodukte. Details und Negativkontrollen stehen unter [`docs/resilience-evidence-profiles-v2.md`](docs/resilience-evidence-profiles-v2.md).
+
+## Verbraucher
+
+Das Protokoll erzwingt seine Verwendung nicht selbst. Verbraucher müssen den Assessment-Request, den Protokollcommit und das Auswertungsergebnis revisions- und hashgebunden in ihren eigenen Abschlussweg integrieren. Der bekannte Operator-Consumer und die dabei verbleibenden Autoritätsgrenzen sind unter [`docs/operator-consumer-coverage.md`](docs/operator-consumer-coverage.md) dokumentiert.
 
 ## Entwicklung
 
@@ -76,4 +80,4 @@ Architektur, Autoritätsgrenzen, Threat Model sowie verbindliche SemVer- und Mig
 
 ## Status
 
-Version `1.1.0` ergänzt additive v2-Dokumente für resilienzbewusste Evidence-Profile. v1 bleibt vollständig lesbar und bytegleich auswertbar. Die Referenzfixture `R2-foundational` belegt Recovery, begrenzten Degradationsbetrieb, Cleanup, Rückkehr zum Primärpfad, unabhängige Failure-Domains und Split-Brain-Negativkontrolle.
+Version `1.1.2` enthält die additive v2-Protokollgeneration für resilienzbewusste Evidence-Profile und härtet Profilvalidierung, Versionsdispatch, Statuspräzedenz und Profil-Hashbindung. v1 bleibt vollständig lesbar und bytegleich auswertbar. Die Referenzfixture `R2-foundational` belegt Recovery, begrenzten Degradationsbetrieb, Cleanup, Rückkehr zum Primärpfad, unabhängige Failure-Domains und Split-Brain-Negativkontrolle.
