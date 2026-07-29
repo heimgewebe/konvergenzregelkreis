@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/effect-receipt.v1.schema.json",
+  "title": "Effect Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "evidence_ref", "subject_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"enum": ["commit", "pull_request", "merge", "artifact", "deployment", "configuration_change"]},
+    "evidence_ref": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

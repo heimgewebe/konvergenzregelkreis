@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sysconfig
+from importlib import resources
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, NamedTuple, Sequence
@@ -95,16 +96,42 @@ def canonical_json(data: Any, *, pretty: bool = False) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
 
 
+def _packaged_contract_root() -> Path | None:
+    try:
+        traversable = resources.files("regelkreis").joinpath("contracts")
+    except (ModuleNotFoundError, TypeError):
+        return None
+    # Wheels are installed as regular files by pip. Converting the Traversable
+    # keeps the evaluator Path-based; non-filesystem importers fall through to
+    # the documented source-tree and legacy installation candidates.
+    root = Path(str(traversable))
+    return root if root.is_dir() else None
+
+
 def locate_contract_root(explicit: str | Path | None = None) -> Path:
     candidates: list[Path] = []
     if explicit is not None:
         candidates.append(Path(explicit))
     else:
-        candidates.extend([Path.cwd(), Path(__file__).resolve().parents[2]])
-        candidates.append(Path(sysconfig.get_path("data")) / "share" / "konvergenzregelkreis")
+        packaged = _packaged_contract_root()
+        if packaged is not None:
+            candidates.append(packaged)
+        # Source-tree and legacy data-files fallbacks preserve the 1.x cutover
+        # path. Caller CWD is last and can no longer shadow packaged contracts.
+        candidates.extend(
+            [
+                Path(__file__).resolve().parents[2],
+                Path(sysconfig.get_path("data")) / "share" / "konvergenzregelkreis",
+                Path.cwd(),
+            ]
+        )
 
+    seen: set[Path] = set()
     for candidate in candidates:
         root = candidate.resolve()
+        if root in seen:
+            continue
+        seen.add(root)
         if (root / "protocol").is_dir() and (root / "profiles").is_dir():
             return root
 

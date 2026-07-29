@@ -4,6 +4,19 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-29
+
+### Changed
+
+- Protokolle und Evidence-Profile werden primär paketintern über `importlib.resources` gefunden und können nicht mehr durch den Caller-CWD überschattet werden;
+- die bisherige `share/konvergenzregelkreis`-Installation bleibt während des 1.x-Kompatibilitätsfensters als nachrangiger Fallback erhalten;
+- Paket- und Modulversion auf 1.2.0 synchronisiert.
+
+### Tests
+
+- Byteparität zwischen kanonischen Quellressourcen und Paketkopie sowie CWD-unabhängige Standardauflösung ergänzt;
+- isolierter Wheel-Build und Aufruf von `validate-contracts` außerhalb des Repository-Checkouts gehören zum Release-Nachweis.
+
 ## [1.1.2] - 2026-07-21
 
 ### Changed

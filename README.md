@@ -51,6 +51,10 @@ regelkreis evaluate conformance/valid/r2-terminal.json
 
 Die Ausgabe ist deterministisch: gleiche Eingaben und gleiche Vertragsdateien erzeugen bytegleiche JSON-Ausgaben. Es gibt keine Netzwerkzugriffe, Datenbank, Uhrzeitabfrage oder Mutation.
 
+### Vertragsressourcen ab 1.2
+
+Installierte Wheels laden Protokolle und Profile zuerst paketintern über `importlib.resources`. Der Aufruf ist damit unabhängig vom aktuellen Arbeitsverzeichnis. `--contract-root` bleibt die explizite Überschreibung. Für den 1.x-Kompatibilitätszeitraum werden die bisherigen Dateien unter `share/konvergenzregelkreis` weiterhin mitinstalliert und erst nach den paketinternen Ressourcen als Fallback gelesen. Quellbaum und Caller-CWD bleiben nachrangige Entwicklungs- beziehungsweise Legacy-Fallbacks; sie können paketinterne Verträge nicht mehr überschatten.
+
 ## Evidence-Profile
 
 v1 bewertet Änderungsrisiken R0–R3 unverändert:
@@ -80,4 +84,4 @@ Architektur, Autoritätsgrenzen, Threat Model sowie verbindliche SemVer- und Mig
 
 ## Status
 
-Version `1.1.2` enthält die additive v2-Protokollgeneration für resilienzbewusste Evidence-Profile und härtet Profilvalidierung, Versionsdispatch, Statuspräzedenz und Profil-Hashbindung. v1 bleibt vollständig lesbar und bytegleich auswertbar. Die Referenzfixture `R2-foundational` belegt Recovery, begrenzten Degradationsbetrieb, Cleanup, Rückkehr zum Primärpfad, unabhängige Failure-Domains und Split-Brain-Negativkontrolle.
+Version `1.2.0` lädt Vertragsressourcen CWD-unabhängig aus dem Paket und enthält weiterhin die additive v2-Protokollgeneration für resilienzbewusste Evidence-Profile und härtet Profilvalidierung, Versionsdispatch, Statuspräzedenz und Profil-Hashbindung. v1 bleibt vollständig lesbar und bytegleich auswertbar. Die Referenzfixture `R2-foundational` belegt Recovery, begrenzten Degradationsbetrieb, Cleanup, Rückkehr zum Primärpfad, unabhängige Failure-Domains und Split-Brain-Negativkontrolle.
