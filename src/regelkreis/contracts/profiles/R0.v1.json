@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "risk_level": "R0",
+  "description": "Reine, reversible Dokumentations- oder Projektionsänderung ohne Laufzeitwirkung.",
+  "required_effects": ["commit"],
+  "required_verifications": ["deterministic_regeneration"],
+  "required_closure_fields": []
+}

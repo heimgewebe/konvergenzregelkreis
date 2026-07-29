@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heimgewebe.github.io/konvergenzregelkreis/protocol/transition-assessment.v1.schema.json",
+  "title": "Transition Assessment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "risk_level",
+    "status",
+    "missing_evidence",
+    "conflicts",
+    "blocked_by",
+    "profile_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "assessment_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "risk_level": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "status": {
+      "enum": [
+        "transition_allowed",
+        "evidence_missing",
+        "conflicting_evidence",
+        "source_stale",
+        "blocked",
+        "terminally_closed"
+      ]
+    },
+    "missing_evidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 128
+    },
+    "conflicts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 128
+    },
+    "blocked_by": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 128
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

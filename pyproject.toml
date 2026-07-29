@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "regelkreis"
-version = "1.1.2"
+version = "1.2.0"
 description = "Stateless convergence protocol evaluator for evidence-bound ecosystem changes"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,7 +32,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-regelkreis = ["py.typed"]
+regelkreis = ["py.typed", "contracts/protocol/*.json", "contracts/profiles/*.json"]
 
 [tool.setuptools.data-files]
 "share/konvergenzregelkreis/protocol" = ["protocol/*.json"]

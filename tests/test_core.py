@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import io
 import json
+import os
 import re
 import shutil
 import tempfile
@@ -22,6 +23,7 @@ from regelkreis.core import (
     load_json,
     load_profile,
     load_resilience_profile,
+    locate_contract_root,
     validate_contracts,
 )
 
@@ -70,6 +72,31 @@ class ContractTests(unittest.TestCase):
         match = re.search(r'^version = "([^"]+)"$', text, re.MULTILINE)
         self.assertIsNotNone(match)
         self.assertEqual(match.group(1), regelkreis.__version__)
+
+    def test_packaged_contracts_match_repository_contracts(self) -> None:
+        packaged = ROOT / "src" / "regelkreis" / "contracts"
+        for directory in ("protocol", "profiles"):
+            source_files = sorted((ROOT / directory).glob("*.json"))
+            packaged_files = sorted((packaged / directory).glob("*.json"))
+            self.assertEqual(
+                [item.name for item in source_files],
+                [item.name for item in packaged_files],
+            )
+            for source, bundled in zip(source_files, packaged_files, strict=True):
+                self.assertEqual(source.read_bytes(), bundled.read_bytes(), source.name)
+
+    def test_default_contract_root_is_cwd_independent(self) -> None:
+        previous = Path.cwd()
+        with tempfile.TemporaryDirectory() as directory:
+            caller = Path(directory)
+            (caller / "protocol").mkdir()
+            (caller / "profiles").mkdir()
+            os.chdir(caller)
+            try:
+                root = locate_contract_root()
+            finally:
+                os.chdir(previous)
+        self.assertEqual((ROOT / "src" / "regelkreis" / "contracts").resolve(), root)
 
     def test_output_is_byte_deterministic(self) -> None:
         first = canonical_json(evaluate(self.request, ROOT))
