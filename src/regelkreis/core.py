@@ -207,11 +207,14 @@ def _validate(
     prefix: str,
     *,
     version: int = 1,
-) -> None:
+    registry: Registry | None = None,
+) -> Registry:
     schema = _schema(root, schema_key, version=version)
+    if registry is None:
+        registry = _schema_registry(root)
     validator = Draft202012Validator(
         schema,
-        registry=_schema_registry(root),
+        registry=registry,
         format_checker=FormatChecker(),
     )
     errors = []
@@ -219,6 +222,7 @@ def _validate(
         errors.append(f"{prefix}:{error.json_path}:{error.message}")
     if errors:
         raise ContractValidationError(errors)
+    return registry
 
 
 def _profile_path(root: Path, risk_level: str) -> Path:
@@ -315,7 +319,7 @@ def _resilience_profile_cell(
 def _validate_request_version(
     root: Path, request: Mapping[str, Any], version: int
 ) -> None:
-    _validate(root, "assessment_request", request, "request", version=version)
+    registry = _validate(root, "assessment_request", request, "request", version=version)
     for component in REQUEST_COMPONENTS_BY_VERSION[version]:
         if component.optional and component.field not in request:
             continue
@@ -328,6 +332,7 @@ def _validate_request_version(
                     item,
                     f"{component.field}[{index}]",
                     version=component.schema_version,
+                    registry=registry,
                 )
         else:
             _validate(
@@ -336,6 +341,7 @@ def _validate_request_version(
                 value,
                 component.field,
                 version=component.schema_version,
+                registry=registry,
             )
 
 
