@@ -16,6 +16,7 @@ from regelkreis.cli import main
 from regelkreis.core import (
     EVALUATORS_BY_VERSION,
     MAX_JSON_BYTES,
+    MAX_JSON_NESTING,
     REQUEST_COMPONENTS_BY_VERSION,
     ContractValidationError,
     canonical_json,
@@ -162,6 +163,59 @@ class ContractTests(unittest.TestCase):
                 load_json(path)
         self.assertTrue(any("json:too_large" in item for item in raised.exception.errors))
 
+    def test_excessively_nested_json_is_rejected_after_parsing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nested.json"
+            path.write_text("[" * (MAX_JSON_NESTING + 1) + "0" + "]" * (MAX_JSON_NESTING + 1))
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(path)
+        self.assertEqual(
+            f"json:too_deep:{path}:{MAX_JSON_NESTING + 1}:{MAX_JSON_NESTING}",
+            raised.exception.errors[0],
+        )
+
+    def test_json_at_exact_nesting_limit_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nested-at-limit.json"
+            path.write_text(
+                "[" * MAX_JSON_NESTING + "0" + "]" * MAX_JSON_NESTING
+            )
+            value = load_json(path)
+        for _ in range(MAX_JSON_NESTING):
+            self.assertIsInstance(value, list)
+            self.assertEqual(1, len(value))
+            value = value[0]
+        self.assertEqual(0, value)
+
+    def test_object_nesting_uses_the_same_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            accepted = root / "object-at-limit.json"
+            rejected = root / "object-over-limit.json"
+            accepted.write_text(
+                '{"a":' * MAX_JSON_NESTING + "0" + "}" * MAX_JSON_NESTING
+            )
+            rejected.write_text(
+                '{"a":' * (MAX_JSON_NESTING + 1)
+                + "0"
+                + "}" * (MAX_JSON_NESTING + 1)
+            )
+            load_json(accepted)
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(rejected)
+        self.assertEqual(
+            f"json:too_deep:{rejected}:{MAX_JSON_NESTING + 1}:{MAX_JSON_NESTING}",
+            raised.exception.errors[0],
+        )
+
+    def test_parser_recursion_from_deep_json_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "deeply-nested.json"
+            path.write_text("[" * 1_100 + "0" + "]" * 1_100)
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(path)
+        self.assertTrue(any(item.startswith("json:too_deep:") for item in raised.exception.errors))
+
     def test_cli_exit_codes_and_streams(self) -> None:
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -186,6 +240,20 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(4, code)
         self.assertEqual("", stderr.getvalue())
         self.assertEqual("conflicting_evidence", json.loads(stdout.getvalue())["status"])
+
+    def test_cli_rejects_deeply_nested_json_as_invalid_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "deeply-nested.json"
+            path.write_text("[" * 1_100 + "0" + "]" * 1_100)
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                code = main(["evaluate", str(path), "--contract-root", str(ROOT)])
+        self.assertEqual(3, code)
+        self.assertEqual("", stdout.getvalue())
+        error = json.loads(stderr.getvalue())
+        self.assertEqual("invalid_input", error["status"])
+        self.assertTrue(any(item.startswith("json:too_deep:") for item in error["errors"]))
 
 
     def test_resilience_v2_fixture_matches_expected(self) -> None:

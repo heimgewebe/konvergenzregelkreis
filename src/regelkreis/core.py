@@ -71,6 +71,7 @@ COMMON_MODE_INDEPENDENT = "independent"
 SPLIT_BRAIN_NEGATIVE_CONTROL = "split_brain_negative_control"
 
 MAX_JSON_BYTES = 4 * 1024 * 1024
+MAX_JSON_NESTING = 64
 
 STATUS_EXIT_CODES: dict[str, int] = {
     "transition_allowed": 0,
@@ -144,13 +145,37 @@ def load_json(path: Path) -> Any:
         size = path.stat().st_size
         if size > MAX_JSON_BYTES:
             raise ContractValidationError([f"json:too_large:{path}:{size}:{MAX_JSON_BYTES}"])
-        return json.loads(path.read_text(encoding="utf-8"))
+        contents = json.loads(path.read_text(encoding="utf-8"))
+        _validate_json_nesting(contents, path)
+        return contents
     except FileNotFoundError as exc:
         raise ContractValidationError([f"file:not_found:{path}"]) from exc
     except json.JSONDecodeError as exc:
         raise ContractValidationError(
             [f"json:invalid:{path}:{exc.lineno}:{exc.colno}:{exc.msg}"]
         ) from exc
+    except RecursionError as exc:
+        raise ContractValidationError(
+            [f"json:too_deep:{path}:parser_recursion:{MAX_JSON_NESTING}"]
+        ) from exc
+
+
+def _validate_json_nesting(contents: Any, path: Path) -> None:
+    stack: list[tuple[Any, int]] = [(contents, 1)]
+    while stack:
+        value, depth = stack.pop()
+        if not isinstance(value, (dict, list)):
+            continue
+        if depth > MAX_JSON_NESTING:
+            raise ContractValidationError(
+                [f"json:too_deep:{path}:{depth}:{MAX_JSON_NESTING}"]
+            )
+        children = value.values() if isinstance(value, dict) else value
+        stack.extend(
+            (child, depth + 1)
+            for child in children
+            if isinstance(child, (dict, list))
+        )
 
 
 def _all_schema_files() -> tuple[str, ...]:
