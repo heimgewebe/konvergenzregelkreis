@@ -4,6 +4,14 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+### Changed
+
+- JSON-Eingaben werden zusätzlich zur bestehenden 4-MiB-Grenze auf 64 verschachtelte Container-Ebenen begrenzt; übertiefe Eingaben und Parser-Rekursionen werden fail-closed als ungültige Eingabe behandelt.
+
+### Tests
+
+- Regressionen für die direkte JSON-Ladung und den CLI-Pfad bei tief verschachtelten JSON-Eingaben ergänzt.
+
 ## [1.2.0] - 2026-07-29
 
 ### Changed

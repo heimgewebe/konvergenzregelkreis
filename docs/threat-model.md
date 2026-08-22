@@ -26,6 +26,7 @@ Assessment-Dateien, Profile und Schemas gelten als nicht vertrauenswürdig. Rele
 - deterministische Konflikterkennung;
 - keine Netzwerk-, Datenbank- oder Mutationsfunktionen;
 - keine automatische Dereferenzierung von Evidence-Referenzen;
+- JSON-Dateien sind auf 4 MiB und höchstens 64 verschachtelte Container-Ebenen begrenzt; Parser-Rekursion wird als ungültige Eingabe fail-closed behandelt;
 - versionierte Profile und Profilhash in jedem Ergebnis;
 - CI prüft Schemas, Profile, Fixtures und deterministische Ausgabe.
 
