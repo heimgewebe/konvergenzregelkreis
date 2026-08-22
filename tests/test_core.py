@@ -174,6 +174,40 @@ class ContractTests(unittest.TestCase):
             raised.exception.errors[0],
         )
 
+    def test_json_at_exact_nesting_limit_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nested-at-limit.json"
+            path.write_text(
+                "[" * MAX_JSON_NESTING + "0" + "]" * MAX_JSON_NESTING
+            )
+            value = load_json(path)
+        for _ in range(MAX_JSON_NESTING):
+            self.assertIsInstance(value, list)
+            self.assertEqual(1, len(value))
+            value = value[0]
+        self.assertEqual(0, value)
+
+    def test_object_nesting_uses_the_same_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            accepted = root / "object-at-limit.json"
+            rejected = root / "object-over-limit.json"
+            accepted.write_text(
+                '{"a":' * MAX_JSON_NESTING + "0" + "}" * MAX_JSON_NESTING
+            )
+            rejected.write_text(
+                '{"a":' * (MAX_JSON_NESTING + 1)
+                + "0"
+                + "}" * (MAX_JSON_NESTING + 1)
+            )
+            load_json(accepted)
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(rejected)
+        self.assertEqual(
+            f"json:too_deep:{rejected}:{MAX_JSON_NESTING + 1}:{MAX_JSON_NESTING}",
+            raised.exception.errors[0],
+        )
+
     def test_parser_recursion_from_deep_json_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "deeply-nested.json"

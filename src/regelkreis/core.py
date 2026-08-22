@@ -171,7 +171,11 @@ def _validate_json_nesting(contents: Any, path: Path) -> None:
                 [f"json:too_deep:{path}:{depth}:{MAX_JSON_NESTING}"]
             )
         children = value.values() if isinstance(value, dict) else value
-        stack.extend((child, depth + 1) for child in children)
+        stack.extend(
+            (child, depth + 1)
+            for child in children
+            if isinstance(child, (dict, list))
+        )
 
 
 def _all_schema_files() -> tuple[str, ...]:
