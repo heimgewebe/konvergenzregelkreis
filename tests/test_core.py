@@ -182,12 +182,40 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(f"file:not_regular:{path}", raised.exception.errors[0])
 
     def test_permission_denied_json_input_is_normalized(self) -> None:
-        with patch.object(Path, "read_text", side_effect=PermissionError):
+        with patch("regelkreis.core.os.open", side_effect=PermissionError):
             with self.assertRaises(ContractValidationError) as raised:
                 load_json(VALID_FIXTURE)
         self.assertEqual(
             f"file:permission_denied:{VALID_FIXTURE}", raised.exception.errors[0]
         )
+
+    def test_fifo_json_input_is_rejected_without_waiting_for_a_writer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "json-fifo"
+            os.mkfifo(path)
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(path)
+        self.assertEqual(f"file:not_regular:{path}", raised.exception.errors[0])
+
+    def test_not_a_directory_lookup_error_is_normalized(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory) / "regular-file"
+            parent.write_text("{}", encoding="utf-8")
+            path = parent / "child.json"
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(path)
+        self.assertTrue(raised.exception.errors[0].startswith(f"file:unreadable:{path}:"))
+
+    def test_symlink_loop_lookup_error_is_normalized(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "first.json"
+            second = root / "second.json"
+            first.symlink_to(second.name)
+            second.symlink_to(first.name)
+            with self.assertRaises(ContractValidationError) as raised:
+                load_json(first)
+        self.assertTrue(raised.exception.errors[0].startswith(f"file:unreadable:{first}:"))
 
     def test_cli_normalizes_invalid_utf8_and_directory_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

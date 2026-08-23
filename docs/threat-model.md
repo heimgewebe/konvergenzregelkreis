@@ -28,7 +28,7 @@ Assessment-Dateien, Profile und Schemas gelten als nicht vertrauenswürdig. Rele
 - keine Netzwerk-, Datenbank- oder Mutationsfunktionen;
 - keine automatische Dereferenzierung von Evidence-Referenzen;
 - JSON-Dateien sind auf 4 MiB und höchstens 64 verschachtelte Container-Ebenen begrenzt; Parser-Rekursion wird als ungültige Eingabe fail-closed behandelt;
-- der Dateilader akzeptiert nur reguläre UTF-8-Dateien; Verzeichnisse und andere nicht-reguläre Ziele, ungültiges UTF-8 sowie verweigerte Zugriffe werden in den normalen `ContractValidationError`-/`invalid_input`-Pfad überführt;
+- der Dateilader öffnet JSON-Pfade einmalig nichtblockierend, prüft Typ und Größe per `fstat()` auf demselben Deskriptor und liest höchstens 4 MiB + 1 Byte; Verzeichnisse/FIFOs und andere nicht-reguläre Ziele, ungültiges UTF-8 sowie Dateisystem-/Zugriffsfehler werden in den normalen `ContractValidationError`-/`invalid_input`-Pfad überführt;
 - versionierte Profile und Profilhash in jedem Ergebnis;
 - CI prüft Schemas, Profile, Fixtures und deterministische Ausgabe.
 
