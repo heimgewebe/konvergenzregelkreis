@@ -161,21 +161,33 @@ def load_json(path: Path) -> Any:
 
 
 def _validate_json_nesting(contents: Any, path: Path) -> None:
-    stack: list[tuple[Any, int]] = [(contents, 1)]
-    while stack:
-        value, depth = stack.pop()
-        if not isinstance(value, (dict, list)):
-            continue
+    if not isinstance(contents, (dict, list)):
+        return
+
+    value = contents
+    depth = 1
+    stack: list[tuple[Any, int]] = []
+    while True:
         if depth > MAX_JSON_NESTING:
             raise ContractValidationError(
                 [f"json:too_deep:{path}:{depth}:{MAX_JSON_NESTING}"]
             )
         children = value.values() if isinstance(value, dict) else value
-        stack.extend(
-            (child, depth + 1)
-            for child in children
-            if isinstance(child, (dict, list))
-        )
+        stack.append((iter(children), depth + 1))
+
+        while stack:
+            children_iter, child_depth = stack[-1]
+            for child in children_iter:
+                if isinstance(child, (dict, list)):
+                    value = child
+                    depth = child_depth
+                    break
+            else:
+                stack.pop()
+                continue
+            break
+        else:
+            return
 
 
 def _all_schema_files() -> tuple[str, ...]:

@@ -19,6 +19,7 @@ from regelkreis.core import (
     MAX_JSON_NESTING,
     REQUEST_COMPONENTS_BY_VERSION,
     ContractValidationError,
+    _validate_json_nesting,
     canonical_json,
     evaluate,
     load_json,
@@ -215,6 +216,24 @@ class ContractTests(unittest.TestCase):
             with self.assertRaises(ContractValidationError) as raised:
                 load_json(path)
         self.assertTrue(any(item.startswith("json:too_deep:") for item in raised.exception.errors))
+
+    def test_nesting_validation_does_not_materialize_sibling_containers(self) -> None:
+        state = {"first_child_visited": False}
+
+        class ProbeChild(list):
+            def __iter__(self):
+                state["first_child_visited"] = True
+                return super().__iter__()
+
+        class LazyParent(list):
+            def __iter__(self):
+                yield ProbeChild()
+                if not state["first_child_visited"]:
+                    raise AssertionError("sibling containers were materialized eagerly")
+                yield ProbeChild()
+
+        _validate_json_nesting(LazyParent(), Path("lazy-width.json"))
+        self.assertTrue(state["first_child_visited"])
 
     def test_cli_exit_codes_and_streams(self) -> None:
         stdout = io.StringIO()
