@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import stat
 import sysconfig
 from importlib import resources
 from collections import Counter
@@ -141,15 +143,45 @@ def locate_contract_root(explicit: str | Path | None = None) -> Path:
 
 
 def load_json(path: Path) -> Any:
+    descriptor: int | None = None
     try:
-        size = path.stat().st_size
-        if size > MAX_JSON_BYTES:
-            raise ContractValidationError([f"json:too_large:{path}:{size}:{MAX_JSON_BYTES}"])
-        contents = json.loads(path.read_text(encoding="utf-8"))
+        flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NONBLOCK", 0)
+        descriptor = os.open(path, flags)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ContractValidationError([f"file:not_regular:{path}"])
+        if metadata.st_size > MAX_JSON_BYTES:
+            raise ContractValidationError(
+                [f"json:too_large:{path}:{metadata.st_size}:{MAX_JSON_BYTES}"]
+            )
+
+        chunks: list[bytes] = []
+        remaining = MAX_JSON_BYTES + 1
+        while remaining:
+            chunk = os.read(descriptor, min(64 * 1024, remaining))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        raw = b"".join(chunks)
+        final_size = os.fstat(descriptor).st_size
+        observed_size = max(metadata.st_size, final_size, len(raw))
+        if observed_size > MAX_JSON_BYTES:
+            raise ContractValidationError(
+                [f"json:too_large:{path}:{observed_size}:{MAX_JSON_BYTES}"]
+            )
+
+        contents = json.loads(raw.decode("utf-8"))
         _validate_json_nesting(contents, path)
         return contents
     except FileNotFoundError as exc:
         raise ContractValidationError([f"file:not_found:{path}"]) from exc
+    except PermissionError as exc:
+        raise ContractValidationError([f"file:permission_denied:{path}"]) from exc
+    except UnicodeDecodeError as exc:
+        raise ContractValidationError(
+            [f"json:invalid_utf8:{path}:{exc.start}"]
+        ) from exc
     except json.JSONDecodeError as exc:
         raise ContractValidationError(
             [f"json:invalid:{path}:{exc.lineno}:{exc.colno}:{exc.msg}"]
@@ -158,6 +190,12 @@ def load_json(path: Path) -> Any:
         raise ContractValidationError(
             [f"json:too_deep:{path}:parser_recursion:{MAX_JSON_NESTING}"]
         ) from exc
+    except OSError as exc:
+        errno = exc.errno if exc.errno is not None else "unknown"
+        raise ContractValidationError([f"file:unreadable:{path}:{errno}"]) from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
 
 
 def _validate_json_nesting(contents: Any, path: Path) -> None:
