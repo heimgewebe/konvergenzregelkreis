@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import stat
 import sysconfig
 from importlib import resources
 from collections import Counter
@@ -142,7 +143,10 @@ def locate_contract_root(explicit: str | Path | None = None) -> Path:
 
 def load_json(path: Path) -> Any:
     try:
-        size = path.stat().st_size
+        metadata = path.stat()
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ContractValidationError([f"file:not_regular:{path}"])
+        size = metadata.st_size
         if size > MAX_JSON_BYTES:
             raise ContractValidationError([f"json:too_large:{path}:{size}:{MAX_JSON_BYTES}"])
         contents = json.loads(path.read_text(encoding="utf-8"))
@@ -150,6 +154,14 @@ def load_json(path: Path) -> Any:
         return contents
     except FileNotFoundError as exc:
         raise ContractValidationError([f"file:not_found:{path}"]) from exc
+    except IsADirectoryError as exc:
+        raise ContractValidationError([f"file:not_regular:{path}"]) from exc
+    except PermissionError as exc:
+        raise ContractValidationError([f"file:permission_denied:{path}"]) from exc
+    except UnicodeDecodeError as exc:
+        raise ContractValidationError(
+            [f"json:invalid_utf8:{path}:{exc.start}"]
+        ) from exc
     except json.JSONDecodeError as exc:
         raise ContractValidationError(
             [f"json:invalid:{path}:{exc.lineno}:{exc.colno}:{exc.msg}"]

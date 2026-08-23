@@ -7,10 +7,12 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 ### Changed
 
 - JSON-Eingaben werden zusätzlich zur bestehenden 4-MiB-Grenze auf 64 verschachtelte Container-Ebenen begrenzt; übertiefe Eingaben und Parser-Rekursionen werden fail-closed als ungültige Eingabe behandelt.
+- JSON-Dateipfade müssen auf reguläre Dateien zeigen; Verzeichnisse und andere nicht-reguläre Ziele, ungültiges UTF-8 sowie verweigerte Dateizugriffe werden als `ContractValidationError` normalisiert, sodass der CLI-Pfad ohne Traceback mit `invalid_input` endet.
 
 ### Tests
 
 - Regressionen für die direkte JSON-Ladung und den CLI-Pfad bei tief verschachtelten JSON-Eingaben ergänzt.
+- Regressionen für ungültiges UTF-8, Verzeichnis-/Nichtdatei-Eingaben und verweigerte Dateizugriffe ergänzt.
 
 ## [1.2.0] - 2026-07-29
 
