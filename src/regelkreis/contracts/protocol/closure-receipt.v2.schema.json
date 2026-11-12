@@ -30,6 +30,12 @@
       "minLength": 1,
       "maxLength": 500
     },
+    "operator_obligation_ref": {
+      "description": "Exact Grabowski direct-user obligation open-record reference. The consumer must live-verify its open-file SHA-256.",
+      "type": "string",
+      "maxLength": 240,
+      "pattern": "^grabowski:operator-obligation:goo-[a-z0-9][a-z0-9-]{7,79}@sha256:[0-9a-f]{64}$"
+    },
     "chronik_event_ref": {
       "type": "string",
       "minLength": 1,

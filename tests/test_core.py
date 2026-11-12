@@ -412,6 +412,110 @@ class ContractTests(unittest.TestCase):
         self.assertEqual("R1-foundational", result["profile_cell_id"])
         self.assertNotIn("verification:recovery", result["missing_evidence"])
 
+    @staticmethod
+    def _direct_obligation_v2_request() -> dict:
+        request = load_json(RESILIENCE_FIXTURE)
+        request["classification"]["target_criticality"] = "supporting"
+        open_sha256 = "1" * 64
+        direct_ref = (
+            "grabowski:operator-obligation:goo-regelkreis-direct-closure-20261112"
+            f"@sha256:{open_sha256}"
+        )
+        request["closure"].pop("bureau_task_ref")
+        request["closure"]["operator_obligation_ref"] = direct_ref
+        request["observation"]["source_refs"].append(
+            {
+                "kind": "operator_obligation",
+                "ref": direct_ref,
+                "subject_sha256": open_sha256,
+            }
+        )
+        return request
+
+    def test_v2_direct_obligation_ref_closes_without_fabricating_bureau_task(self) -> None:
+        request = self._direct_obligation_v2_request()
+        result = evaluate(request, ROOT)
+        self.assertEqual("terminally_closed", result["status"])
+        self.assertEqual("R2-supporting", result["profile_cell_id"])
+        self.assertEqual([], result["missing_evidence"])
+        self.assertNotIn("bureau_task_ref", request["closure"])
+
+    def test_v2_direct_obligation_ref_requires_exact_open_digest_source_binding(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["observation"]["source_refs"][-1]["subject_sha256"] = "2" * 64
+        result = evaluate(request, ROOT)
+        self.assertEqual("evidence_missing", result["status"])
+        self.assertEqual(
+            ["closure.operator_obligation_source_ref"],
+            result["missing_evidence"],
+        )
+        request["observation"]["source_refs"][-1]["subject_sha256"] = "1" * 64
+        request["observation"]["source_refs"][-1]["kind"] = "bureau_task"
+        self.assertEqual(
+            "evidence_missing", evaluate(request, ROOT)["status"]
+        )
+
+    def test_v2_same_obligation_source_with_contradictory_hashes_conflicts(self) -> None:
+        request = self._direct_obligation_v2_request()
+        second = copy.deepcopy(request["observation"]["source_refs"][-1])
+        second["subject_sha256"] = "2" * 64
+        request["observation"]["source_refs"].append(second)
+        result = evaluate(request, ROOT)
+        self.assertEqual("conflicting_evidence", result["status"])
+        self.assertIn(
+            "closure:operator_obligation_source_hash_conflict",
+            result["conflicts"],
+        )
+        self.assertNotIn(
+            "closure.operator_obligation_source_ref", result["missing_evidence"]
+        )
+
+    def test_v2_repeated_consistent_source_does_not_create_false_conflict(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["observation"]["source_refs"].append(
+            copy.deepcopy(request["observation"]["source_refs"][-1])
+        )
+        result = evaluate(request, ROOT)
+        self.assertEqual("terminally_closed", result["status"])
+        self.assertEqual([], result["conflicts"])
+
+    def test_v2_direct_obligation_and_bureau_task_together_are_conflicting(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["closure"]["bureau_task_ref"] = "bureau:task:REAL-1"
+        result = evaluate(request, ROOT)
+        self.assertEqual("conflicting_evidence", result["status"])
+        self.assertEqual(
+            ["closure:multiple_work_authorities"], result["conflicts"]
+        )
+
+    def test_v2_work_authority_cannot_be_omitted(self) -> None:
+        request = self._direct_obligation_v2_request()
+        del request["closure"]["operator_obligation_ref"]
+        result = evaluate(request, ROOT)
+        self.assertEqual("evidence_missing", result["status"])
+        self.assertIn("closure.bureau_task_ref", result["missing_evidence"])
+
+    def test_v2_direct_obligation_ref_rejects_malformed_identity(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["closure"]["operator_obligation_ref"] = "grabowski:any-task"
+        with self.assertRaises(ContractValidationError):
+            evaluate(request, ROOT)
+
+    def test_v2_unclosed_direct_obligation_is_not_terminal(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["closure"]["status"] = "proposed"
+        result = evaluate(request, ROOT)
+        self.assertEqual("transition_allowed", result["status"])
+
+    def test_v1_closure_rejects_v2_only_direct_obligation_field(self) -> None:
+        request = load_json(VALID_FIXTURE)
+        request["closure"]["operator_obligation_ref"] = (
+            "grabowski:operator-obligation:goo-regelkreis-direct-closure-20261112"
+            + "@sha256:" + "1" * 64
+        )
+        with self.assertRaises(ContractValidationError):
+            evaluate(request, ROOT)
+
     def test_resilience_v2_missing_recovery_domain_blocks(self) -> None:
         request = load_json(RESILIENCE_FIXTURE)
         request["classification"]["resilience"]["recovery_failure_domain"] = None
