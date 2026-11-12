@@ -19,6 +19,31 @@ Dieses Dokument beschreibt die öffentlich belegbare Integration des zustandslos
 
 Nur eine Transition-Assessment-Ausgabe mit `status=terminally_closed` ergibt eine positive Abschlussentscheidung. Fehlende, veraltete, blockierte oder widersprüchliche Evidenz bleibt fail-closed.
 
+## V2-Abschlussautorität für direkte Nutzeraufträge
+
+Die bestehende v2-Resilienzmatrix verlangt eine verantwortliche Arbeitsquelle
+(`bureau_task_ref`). Ein autorisierter direkter Grabowski-Auftrag ist aber
+bereits als create-only `operator-obligation` belegt und muss dafür **keinen**
+künstlichen Bureau-Task erzeugen. V2 akzeptiert alternativ:
+
+- `closure.operator_obligation_ref` in der Form
+  `grabowski:operator-obligation:<id>@sha256:<open-record-sha256>`;
+- exakt dazu passende `observation.source_refs` mit
+  `kind=operator_obligation`, demselben `ref` und dem SHA-256 der
+  unveränderlichen Grabowski-`open.json`.
+
+Beide Quellen zusammen sind widersprüchlich (`conflicting_evidence`);
+eine ungebundene direkte Quelle bleibt `evidence_missing`. V1 und
+bestehende reine Bureau-Abschlüsse bleiben unverändert. Die statische
+Matrixpflicht `bureau_task_ref` ist in V2 nur für den **tatsächlich als
+Bureau-Task geführten** Arbeitsursprung wörtlich zu lesen.
+
+Die zustandslose Referenzauswertung **prüft nicht**, ob die genannte
+Grabowski-Datei existiert oder ob eine konkrete Nutzerfunktion erfolgreich
+war. Der Grabowski-Consumer muss vor jeder systemischen `completed`-Mutation
+den exakten Obligation-ID-/Open-Record-Hash gegen seine Primärquelle und
+den bereits gebundenen Request live verifizieren. Protokoll-PASS ist
+niemals Ersatz für Task-, Merge-, Deployment- oder Nutzer-Readback.
 ## Abdeckungsmatrix
 
 | Abschlussaspekt | Protokoll | Bekannter Consumer | Verbleibende Autorität |

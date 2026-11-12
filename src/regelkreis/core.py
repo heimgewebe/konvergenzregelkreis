@@ -627,15 +627,39 @@ def _evaluate_v2(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
         required_verifications.append(SPLIT_BRAIN_NEGATIVE_CONTROL)
 
     closure = validated.get("closure")
+    required_closure_fields = list(cell["required_closure_fields"])
+    direct_ref = closure.get("operator_obligation_ref") if closure is not None else None
+
+    # The v2 accountability requirement may be fulfilled by the *other*
+    # authoritative work origin: a create-only Grabowski user obligation.
+    # v1 and existing Bureau-task receipts retain their original semantics.
+    if direct_ref is not None and "bureau_task_ref" in required_closure_fields:
+        required_closure_fields.remove("bureau_task_ref")
     conflicts, failed_verifications, missing = _evidence_state(
         effects,
         verifications,
         cell["required_effects"],
         required_verifications,
         closure,
-        list(cell["required_closure_fields"]),
+        required_closure_fields,
     )
+
+    if direct_ref is not None:
+        if closure.get("bureau_task_ref") is not None:
+            conflicts.append("closure:multiple_work_authorities")
+        # The v2 schema validates the exact ref form and SHA-256 suffix.
+        # This binds a claim to the observation, not to an unread local store.
+        open_sha256 = direct_ref.rsplit("@sha256:", 1)[-1]
+        source_bound = any(
+            item["kind"] == "operator_obligation"
+            and item["ref"] == direct_ref
+            and item["subject_sha256"] == open_sha256
+            for item in validated["observation"]["source_refs"]
+        )
+        if not source_bound:
+            missing.append("closure.operator_obligation_source_ref")
     conflicts = sorted(set(conflicts + _resilience_conflicts(classification)))
+    missing = sorted(set(missing))
 
     blocked_by = list(classification["blocked_by"]) + failed_verifications
     if target_criticality == TARGET_CRITICALITY_UNKNOWN:

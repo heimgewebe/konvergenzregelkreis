@@ -4,6 +4,15 @@ Alle wesentlichen Änderungen werden hier dokumentiert.
 
 ## [Unreleased]
 
+### Added
+
+- V2 akzeptiert direkte Grabowski-Operatorverpflichtungen mit
+  `closure.operator_obligation_ref` und exakt SHA-256-gebundenem
+  `observation.source_refs` statt einer erfundenen `bureau_task_ref`.
+  Fehlende und widersprüchliche Quellen scheitern fail-closed;
+  V1 und echte Bureau-Abschlüsse bleiben unverändert.
+
+
 ### Changed
 
 - JSON-Eingaben werden zusätzlich zur bestehenden 4-MiB-Grenze auf 64 verschachtelte Container-Ebenen begrenzt; übertiefe Eingaben und Parser-Rekursionen werden fail-closed als ungültige Eingabe behandelt.
