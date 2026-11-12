@@ -650,13 +650,15 @@ def _evaluate_v2(validated: Mapping[str, Any], root: Path) -> dict[str, Any]:
         # The v2 schema validates the exact ref form and SHA-256 suffix.
         # This binds a claim to the observation, not to an unread local store.
         open_sha256 = direct_ref.rsplit("@sha256:", 1)[-1]
-        source_bound = any(
-            item["kind"] == "operator_obligation"
-            and item["ref"] == direct_ref
-            and item["subject_sha256"] == open_sha256
+        source_hashes = {
+            item["subject_sha256"]
             for item in validated["observation"]["source_refs"]
-        )
-        if not source_bound:
+            if item["kind"] == "operator_obligation"
+            and item["ref"] == direct_ref
+        }
+        if len(source_hashes) > 1:
+            conflicts.append("closure:operator_obligation_source_hash_conflict")
+        if open_sha256 not in source_hashes:
             missing.append("closure.operator_obligation_source_ref")
     conflicts = sorted(set(conflicts + _resilience_conflicts(classification)))
     missing = sorted(set(missing))

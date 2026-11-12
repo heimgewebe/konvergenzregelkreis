@@ -455,6 +455,30 @@ class ContractTests(unittest.TestCase):
             "evidence_missing", evaluate(request, ROOT)["status"]
         )
 
+    def test_v2_same_obligation_source_with_contradictory_hashes_conflicts(self) -> None:
+        request = self._direct_obligation_v2_request()
+        second = copy.deepcopy(request["observation"]["source_refs"][-1])
+        second["subject_sha256"] = "2" * 64
+        request["observation"]["source_refs"].append(second)
+        result = evaluate(request, ROOT)
+        self.assertEqual("conflicting_evidence", result["status"])
+        self.assertIn(
+            "closure:operator_obligation_source_hash_conflict",
+            result["conflicts"],
+        )
+        self.assertNotIn(
+            "closure.operator_obligation_source_ref", result["missing_evidence"]
+        )
+
+    def test_v2_repeated_consistent_source_does_not_create_false_conflict(self) -> None:
+        request = self._direct_obligation_v2_request()
+        request["observation"]["source_refs"].append(
+            copy.deepcopy(request["observation"]["source_refs"][-1])
+        )
+        result = evaluate(request, ROOT)
+        self.assertEqual("terminally_closed", result["status"])
+        self.assertEqual([], result["conflicts"])
+
     def test_v2_direct_obligation_and_bureau_task_together_are_conflicting(self) -> None:
         request = self._direct_obligation_v2_request()
         request["closure"]["bureau_task_ref"] = "bureau:task:REAL-1"
